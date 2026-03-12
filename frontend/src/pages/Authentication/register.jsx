@@ -59,7 +59,7 @@ function Register() {
         </Typography>
       <Card sx={{ width: 350, p: 2 }}>
         <CardContent>
-          <Typography variant="h6">Register</Typography>
+          <Typography variant="h6">Sign up</Typography>
 
           <Box component="form" onSubmit={handleSubmit}>
             <Stack spacing={2} mt={2}>
@@ -99,7 +99,7 @@ function Register() {
                 variant="contained"
                 sx={{ bgcolor: "black" }}
               >
-                Register
+                Sign up
               </Button>
 
               <Button

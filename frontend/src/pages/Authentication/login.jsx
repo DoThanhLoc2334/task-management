@@ -102,7 +102,7 @@ function Login() {
                       }
                     }}
                   >
-                    Register
+                    Sign up
                   </Button>
 
                   <Button
@@ -117,7 +117,7 @@ function Login() {
                       }
                     }}
                   >
-                    Sign In
+                    Log In
                   </Button>
                 </Stack>
 
