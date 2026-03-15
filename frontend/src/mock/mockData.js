@@ -7,14 +7,14 @@ export const users = [
   },
   {
     id: "u2",
-    email: "nhan@example.com",
-    name: "Dai Nhan",
+    email: "phuocpham@gmail.com",
+    name: "Viet Phuoc",
     created_at: "2026-03-02"
   },
   {
     id: "u3",
-    email: "dev@example.com",
-    name: "Frontend Dev",
+    email: "locdev@gmail.com",
+    name: "Do Loc",
     created_at: "2026-03-02"
   }
 ];

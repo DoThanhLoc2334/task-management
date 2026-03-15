@@ -8,7 +8,7 @@ function AddColumnButton({ onClick }) {
       style={style}
       onClick={onClick}
     >
-      + Add Column
+      + Add Task
     </button>
   );
 }

@@ -30,7 +30,7 @@ function Register() {
 
     try {
       await register({ username, email, password });
-      navigate("/home");
+      navigate("/workspaceswitcher");
     } catch (error) {
       console.log(error);
     }
