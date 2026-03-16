@@ -86,7 +86,7 @@ function Topbar() {
             <TextField
               size="small"
               fullWidth
-              placeholder="Search tasks..."
+              placeholder="Search ..."
             />
           </Box>
 
@@ -105,7 +105,7 @@ function Topbar() {
             </IconButton>
 
             <Avatar>
-              TA
+              LAP
             </Avatar>
 
           </Box>
