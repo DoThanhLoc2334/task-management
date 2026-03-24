@@ -1,139 +1,238 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   TextField,
   Button,
   Stack,
-  Link
+  Link,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  Container
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../services/authService";
+// import { login } from "../../services/authService"; // Mở lại khi có service
 
 function Login() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
-
-
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-        await login({ email, password }); // gọi API
-        navigate("/home"); // chuyển trang
+      // await login({ email, password });
+      console.log("Login với:", email, password);
+      navigate("/home");
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
-    };
-
+  };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "#ffffff",
-        position: "relative"
-      }}
-    >
-
-      <Typography
-        variant="h6"
-        sx={{
-          position: "absolute",
-          top: 20,
-          left: 40,
-          fontWeight: "bold"
+    <Grid container sx={{ minHeight: "100vh", bgcolor: "#fff" }}>
+      {/* CỘT BÊN TRÁI: FORM SECTION */}
+      <Grid 
+        item 
+        xs={12} 
+        md={6} 
+        sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          px: { xs: 3, sm: 6, md: 10 },
+          py: 4
         }}
       >
-        LAP-TLJ
-      </Typography>
+        {/* Brand Logo */}
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            fontWeight: 800, 
+            color: "#4669fa", 
+            letterSpacing: "-0.5px",
+            mb: { xs: 6, md: 12 } 
+          }}
+        >
+          Digital
+        </Typography>
 
-      {/* Center Card */}
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center"
-        }}
-      >
-        <Card sx={{ width: 350, p: 2, borderRadius: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Login
+        {/* Form Container - Căn giữa theo chiều dọc */}
+        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ width: "100%", maxWidth: 480 }}>
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                fontWeight: 800, 
+                color: "#4669fa", 
+                mb: 2, 
+                lineHeight: 1.1,
+                fontSize: { xs: '2rem', md: '3rem' }
+              }}
+            >
+              Artificial Intelligence Driving Results For The Travel Industry
+            </Typography>
+            
+            <Typography variant="body1" sx={{ color: "#757575", mb: 6, fontSize: '1.1rem' }}>
+              Welcome back! Please login to your account.
             </Typography>
 
-            <Box component="form" onSubmit={handleSubmit}>
-              <Stack spacing={2}>
-                <TextField
-                  label="Email"
-                  variant="outlined"
-                  fullWidth
-                  size="small"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-
-                <TextField
-                  label="Password"
-                  type="password"
-                  variant="outlined"
-                  fullWidth
-                  size="small"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-
-                {/* Buttons */}
-                <Stack direction="row" spacing={2}>
-                  <Button
-                    variant="contained"
-                    onClick={() => navigate("/register")}
+            <form onSubmit={handleSubmit}>
+              <Stack spacing={4}>
+                {/* Email Field */}
+                <Box>
+                  <Typography variant="caption" sx={{ color: "#9e9e9e", fontWeight: 600 }}>
+                    Email Address
+                  </Typography>
+                  <TextField
+                    variant="standard"
                     fullWidth
-                    sx={{
-                      bgcolor: "black",
-                      color: "white",
-                      "&:hover": {
-                        bgcolor: "#333"
-                      }
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="hakeem@digital.com"
+                    InputProps={{ 
+                      disableUnderline: false,
+                      sx: { py: 1, fontSize: '1rem', color: '#4669fa' } 
                     }}
-                  >
-                    Sign up 
-                  </Button>
+                    sx={{
+                      '& .MuiInput-underline:before': { borderBottomColor: '#e0e0e0' },
+                      '& .MuiInput-underline:after': { borderBottomColor: '#4669fa' },
+                    }}
+                  />
+                </Box>
 
+                {/* Password Field */}
+                <Box>
+                  <Typography variant="caption" sx={{ color: "#9e9e9e", fontWeight: 600 }}>
+                    Password
+                  </Typography>
+                  <TextField
+                    type="password"
+                    variant="standard"
+                    fullWidth
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="************"
+                    InputProps={{ 
+                      sx: { py: 1, fontSize: '1rem', color: '#4669fa' } 
+                    }}
+                    sx={{
+                      '& .MuiInput-underline:before': { borderBottomColor: '#e0e0e0' },
+                    }}
+                  />
+                </Box>
+
+                {/* Options row */}
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <FormControlLabel 
+                    control={<Checkbox size="small" sx={{ color: '#e0e0e0', '&.Mui-checked': { color: '#4669fa' } }} />} 
+                    label={<Typography variant="body2" sx={{ color: '#757575' }}>Remember Me</Typography>} 
+                  />
+                  <Link href="#" underline="none" sx={{ fontSize: 14, color: "#757575", fontWeight: 500 }}>
+                    Forgot Password?
+                  </Link>
+                </Stack>
+
+                {/* Actions */}
+                <Stack direction="row" spacing={3} sx={{ pt: 2 }}>
                   <Button
                     type="submit"
                     variant="contained"
-                    fullWidth
-                    sx={{
-                      bgcolor: "black",
-                      color: "white",
-                      "&:hover": {
-                        bgcolor: "#333"
-                      }
+                    disableElevation
+                    sx={{ 
+                      bgcolor: "#4669fa", 
+                      px: 6, py: 1.5, 
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      '&:hover': { bgcolor: '#3552db' }
                     }}
                   >
-                    Log In
+                    Login
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate("/register")}
+                    sx={{ 
+                      px: 6, py: 1.5, 
+                      borderRadius: '8px', 
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      borderColor: "#e0e0e0",
+                      color: "#4669fa",
+                      '&:hover': { borderColor: '#4669fa', bgcolor: 'transparent' }
+                    }}
+                  >
+                    Sign Up
                   </Button>
                 </Stack>
 
-                <Link
-                  component="button"
-                  underline="hover"
-                  sx={{ textAlign: "left", fontSize: 14 }}
-                >
-                  Forgot password? aaaaaaaaaaa
-                </Link>
+                {/* Social Login */}
+                <Box sx={{ pt: 4 }}>
+                  <Typography variant="body2" sx={{ color: "#9e9e9e", mb: 2 }}>
+                    Or login with
+                  </Typography>
+                  <Stack direction="row" spacing={4}>
+                    {['Facebook', 'LinkedIn', 'Google'].map((platform) => (
+                      <Link 
+                        key={platform}
+                        href="#" 
+                        underline="none" 
+                        sx={{ fontWeight: 700, color: "#4669fa", fontSize: '0.9rem' }}
+                      >
+                        {platform}
+                      </Link>
+                    ))}
+                  </Stack>
+                </Box>
               </Stack>
-            </Box>
-          </CardContent>
-        </Card>
-      </Box>
-    </Box>
+            </form>
+          </Box>
+        </Box>
+      </Grid>
+
+      {/* CỘT BÊN PHẢI: ILLUSTRATION SECTION */}
+      <Grid 
+        item 
+        xs={false} 
+        md={6} 
+        sx={{ 
+          bgcolor: "#f8f9fd", // Màu xám nhạt hơi xanh cho hiện đại
+          display: "flex", 
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          overflow: "hidden"
+        }}
+      >
+        {/* Top Navigation */}
+        <Stack 
+          direction="row" 
+          spacing={5} 
+          sx={{ position: "absolute", top: 48 }}
+        >
+          <Link href="#" underline="none" sx={{ color: "#212121", fontWeight: 700, borderBottom: "3px solid #4669fa", pb: 0.5 }}>Home</Link>
+          {['About us', 'Blog', 'Pricing'].map((item) => (
+            <Link key={item} href="#" underline="none" sx={{ color: "#9e9e9e", fontWeight: 600, '&:hover': { color: '#212121' } }}>
+              {item}
+            </Link>
+          ))}
+        </Stack>
+
+        {/* Central Illustration */}
+        <Box 
+          component="img"
+          src="https://img.freepik.com/free-vector/delivery-service-with-mask-concept_23-2148505116.jpg" 
+          alt="Illustration"
+          sx={{ 
+            width: "85%", 
+            maxWidth: 550,
+            filter: "drop-shadow(0px 20px 40px rgba(0,0,0,0.05))" 
+          }}
+        />
+      </Grid>
+    </Grid>
   );
 }
 
