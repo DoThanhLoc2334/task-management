@@ -2,14 +2,14 @@ import TaskService from '../services/task.service.js';
 import { successResponse, errorResponse } from '../Utils/response.js';
 
 const TaskController = {
-  async getAll(req, res) {
-    try {
-      const data = await TaskService.getAllTasks();
-      return successResponse(res, data);
-    } catch (err) {
-      return errorResponse(res, err.message);
-    }
-  },
+    async getAll(req, res) {
+        try {
+          const data = await TaskService.getAllTasks(req.query);
+          return successResponse(res, data);
+        } catch (err) {
+          return errorResponse(res, err.message);
+        }
+      },
 
   async getById(req, res) {
     try {

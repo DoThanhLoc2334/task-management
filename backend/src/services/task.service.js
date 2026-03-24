@@ -2,9 +2,22 @@ import TaskRepository from '../models/task.repository.js';
 
 
 const TaskService = {
-  async getAllTasks() {
-    return await TaskRepository.findAll();
-  },
+    async getAllTasks(query) {
+        const { search, page, limit, column_id } = query;
+      
+        const result = await TaskRepository.findAll({
+          search,
+          page: Number(page) || 1,
+          limit: Number(limit) || 10,
+          column_id
+        });
+      
+        return {
+          ...result,
+          page: Number(page) || 1,
+          limit: Number(limit) || 10
+        };
+      },
 
   async getTaskById(id) {
     const task = await TaskRepository.findById(id);

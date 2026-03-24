@@ -1,10 +1,52 @@
 import db from '../config/db.js';
 
 const TaskRepository = {
-  async findAll() {
-    const result = await db.query('SELECT * FROM tasks');
-    return result.rows;
-  },
+    async findAll({ search, page = 1, limit = 10, column_id }) {
+        const offset = (page - 1) * limit;
+      
+        let where = [];
+        let values = [];
+      
+        // search theo title
+        if (search) {
+          values.push(`%${search}%`);
+          where.push(`title ILIKE $${values.length}`);
+        }
+      
+        // filter theo column
+        if (column_id) {
+          values.push(column_id);
+          where.push(`column_id = $${values.length}`);
+        }
+      
+        const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+      
+        // query data
+        const dataQuery = `
+          SELECT * FROM tasks
+          ${whereClause}
+          ORDER BY created_at DESC
+          LIMIT $${values.length + 1}
+          OFFSET $${values.length + 2}
+        `;
+      
+        values.push(limit, offset);
+      
+        const dataResult = await db.query(dataQuery, values);
+      
+        // query total
+        const countQuery = `
+          SELECT COUNT(*) FROM tasks
+          ${whereClause}
+        `;
+      
+        const countResult = await db.query(countQuery, values.slice(0, values.length - 2));
+      
+        return {
+          data: dataResult.rows,
+          total: parseInt(countResult.rows[0].count)
+        };
+      },
 
   async findById(id) {
     const result = await db.query(
