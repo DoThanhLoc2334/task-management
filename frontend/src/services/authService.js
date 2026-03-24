@@ -1,10 +1,10 @@
-import api from '../api/axios';
+import instance from "../api/axios"; 
 
 const login = (data) =>{ 
     console.log("Login data:", data); 
-    return api.post('/auth/login', data);
+    return instance.post('/auth/login', data);
 }
 const register = (data) =>{ 
-  return api.post('/auth/register', data);
+  return instance.post('/auth/register', data);
 }
 export {login, register}; 

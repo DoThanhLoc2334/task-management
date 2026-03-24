@@ -12,7 +12,7 @@ import {
   Container
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-// import { login } from "../../services/authService"; // Mở lại khi có service
+import { login } from "../../services/authService";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -22,11 +22,24 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // await login({ email, password });
-      console.log("Login với:", email, password);
-      navigate("/home");
+      const res = await login({ email, password });
+      
+      const response = res.data;
+
+      if (response.success) {
+        // Lưu accessToken vào localStorage
+        localStorage.setItem("accessToken", response.data.accessToken);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+
+        // Điều hướng
+        navigate("/workspaceswitcher");
+      } else {
+        // Hiển thị lỗi nếu login thất bại
+        alert(response.message);
+      }
     } catch (error) {
-      console.log(error);
+      console.error("Login error:", error.response?.data || error.message);
+      alert("Server error, please try again.");
     }
   };
 
