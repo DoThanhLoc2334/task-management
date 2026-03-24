@@ -3,19 +3,16 @@ import TaskRepository from '../models/task.repository.js';
 
 const TaskService = {
     async getAllTasks(query) {
-        const { search, page, limit, column_id } = query;
-      
         const result = await TaskRepository.findAll({
-          search,
-          page: Number(page) || 1,
-          limit: Number(limit) || 10,
-          column_id
+          ...query,
+          page: Number(query.page) || 1,
+          limit: Number(query.limit) || 10
         });
       
         return {
           ...result,
-          page: Number(page) || 1,
-          limit: Number(limit) || 10
+          page: Number(query.page) || 1,
+          limit: Number(query.limit) || 10
         };
       },
 

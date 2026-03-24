@@ -1,31 +1,75 @@
 import db from '../config/db.js';
 
 const TaskRepository = {
-    async findAll({ search, page = 1, limit = 10, column_id }) {
+    async findAll(query) {
+        const {
+          search,
+          page = 1,
+          limit = 10,
+          column_id,
+          assignee_id,
+          start_date,
+          due_date,
+          sort_by = 'created_at',
+          order = 'desc'
+        } = query;
+      
         const offset = (page - 1) * limit;
       
         let where = [];
         let values = [];
       
-        // search theo title
+        // search
         if (search) {
           values.push(`%${search}%`);
           where.push(`title ILIKE $${values.length}`);
         }
       
-        // filter theo column
+        // filter column
         if (column_id) {
           values.push(column_id);
           where.push(`column_id = $${values.length}`);
         }
       
+        // filter assignee
+        if (assignee_id) {
+          values.push(assignee_id);
+          where.push(`assignee_id = $${values.length}`);
+        }
+      
+        // filter start_date
+        if (start_date) {
+          values.push(start_date);
+          where.push(`start_date >= $${values.length}`);
+        }
+      
+        // filter due_date
+        if (due_date) {
+          values.push(due_date);
+          where.push(`due_date <= $${values.length}`);
+        }
+      
         const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
       
-        // query data
+        // ⚠️ validate sort để tránh SQL injection
+        const allowedSortFields = [
+          'created_at',
+          'updated_at',
+          'start_date',
+          'due_date',
+          'title'
+        ];
+      
+        const safeSortBy = allowedSortFields.includes(sort_by)
+          ? sort_by
+          : 'created_at';
+      
+        const safeOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+      
         const dataQuery = `
           SELECT * FROM tasks
           ${whereClause}
-          ORDER BY created_at DESC
+          ORDER BY ${safeSortBy} ${safeOrder}
           LIMIT $${values.length + 1}
           OFFSET $${values.length + 2}
         `;
@@ -34,13 +78,15 @@ const TaskRepository = {
       
         const dataResult = await db.query(dataQuery, values);
       
-        // query total
         const countQuery = `
           SELECT COUNT(*) FROM tasks
           ${whereClause}
         `;
       
-        const countResult = await db.query(countQuery, values.slice(0, values.length - 2));
+        const countResult = await db.query(
+          countQuery,
+          values.slice(0, values.length - 2)
+        );
       
         return {
           data: dataResult.rows,
