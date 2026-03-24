@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 
 import authRoutes from './Routers/authRouter.js';
 import workspaceRoutes from './Routers/workspaceRouter.js';
+import projectRoutes from './Routers/projectRouter.js';
 
 import notFoundHandler from './middleware/notFoundHandler.js';
 import errorHandler from './middleware/errorHandler.js';
@@ -22,6 +23,7 @@ app.use(cors({
 
 app.use('/api/auth', authRoutes);
 app.use('/api/workspaces', workspaceRoutes);
+app.use('/api/workspaces/:workspaceId/projects', projectRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
