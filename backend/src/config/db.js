@@ -23,5 +23,5 @@ const connectDB = async () => {
     }
 };
 
-export { pool }; // Export the pool to use it in your controllers/routes
-export default connectDB;
+export { pool, connectDB };
+export default pool;
