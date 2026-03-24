@@ -1,43 +1,65 @@
 import WorkspaceService from '../services/workspace.service.js';
-import { successResponse, errorResponse } from '../Utils/response.js';
+import { successResponse } from '../Utils/response.js';
 
 const WorkspaceController = {
 
-  async create(req, res) {
+  async create(req, res, next) {
     try {
-      const data = await WorkspaceService.createWorkspace(req.body, req.user.id);
+      const data = await WorkspaceService.createWorkspace(
+        req.body,
+        req.user.id
+      );
+
       return successResponse(res, data);
     } catch (err) {
-      if (err.message === 'MISSING_NAME') {
-        return errorResponse(res, 'Name is required', 400);
-      }
-      return errorResponse(res, err.message);
+      next(err);
     }
   },
 
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
-      const data = await WorkspaceService.getUserWorkspaces(req.user.id);
+      const data = await WorkspaceService.getUserWorkspaces(
+        req.user.id
+      );
+
       return successResponse(res, data);
     } catch (err) {
-      return errorResponse(res, err.message);
+      next(err);
     }
   },
 
-  async getById(req, res) {
+  async getById(req, res, next) {
     try {
-      const data = await WorkspaceService.getWorkspaceById(req.params.id, req.user.id);
+      const data = await WorkspaceService.getWorkspaceById(
+        req.params.id,
+        req.user.id
+      );
+
       return successResponse(res, data);
     } catch (err) {
-      if (err.message === 'WORKSPACE_NOT_FOUND') {
-        return errorResponse(res, 'Workspace not found', 404);
-      }
-      if (err.message === 'FORBIDDEN') {
-        return errorResponse(res, 'Forbidden', 403);
-      }
-      return errorResponse(res, err.message);
+      next(err);
+    }
+  },
+
+  // 🔥 THÊM ĐOẠN NÀY
+  async addMember(req, res, next) {
+    try {
+      const workspaceId = req.params.id;
+      const { user_id, role } = req.body;
+
+      const data = await WorkspaceService.addMember(
+        workspaceId,
+        user_id,
+        role,
+        req.user.id
+      );
+
+      return successResponse(res, data);
+    } catch (err) {
+      next(err);
     }
   }
+
 };
 
 export default WorkspaceController;

@@ -5,6 +5,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
 // 🔥 IMPORT ROUTES
+import errorHandler from './errors/errorHandler.js';
+
 import authRoutes from './Routers/auth.routes.js';
 import taskRoutes from './Routers/task.routes.js';
 import workspaceRoutes from './Routers/workspace.routes.js';
@@ -23,6 +25,7 @@ app.use(cookieParser());
 app.use(cors())
 
 // 🔥 ROUTES
+app.use(errorHandler);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/tasks', taskRoutes);
 app.use('/api/v1/workspaces', workspaceRoutes); 
