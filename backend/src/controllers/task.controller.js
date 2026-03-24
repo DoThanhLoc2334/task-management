@@ -43,6 +43,9 @@ const TaskController = {
       if (err.message === 'TASK_NOT_FOUND') {
         return errorResponse(res, 'Task not found', 404);
       }
+      if (err.message === 'DEPENDENCY_NOT_COMPLETED') {
+        return errorResponse(res, 'Dependency not completed', 400);
+      }
       return errorResponse(res, err.message);
     }
   },
@@ -54,6 +57,9 @@ const TaskController = {
     } catch (err) {
       if (err.message === 'TASK_NOT_FOUND') {
         return errorResponse(res, 'Task not found', 404);
+      }
+      if (err.message === 'TASK_HAS_DEPENDENCIES') {
+        return errorResponse(res, 'Task has dependencies', 400);
       }
       return errorResponse(res, err.message);
     }
