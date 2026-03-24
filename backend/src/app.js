@@ -16,7 +16,9 @@ app.use(cors({
 
 app.use('/api/auth', authRoutes);
 
+import taskRoutes from './Routers/task.routes.js';
 
+app.use('/api/tasks', taskRoutes);
 
 export default app;
 

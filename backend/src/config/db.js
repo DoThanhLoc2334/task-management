@@ -1,17 +1,27 @@
-import mongoose  from "mongoose";
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const pool = new Pool({
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME,
+});
 
 const connectDB = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI, {
-        // connectTimeoutMS: 10000,
-        // useNewUrlParser: true,
-        // useUnifiedTopology: true,
-        });
-        console.log("MongoDB connected successfully");
+        // We "connect" by querying the database once to verify credentials
+        const res = await pool.query('SELECT NOW()');
+        console.log("✅ PostgreSQL connected successfully at:", res.rows[0].now);
     } catch (err) {
-        console.error("MongoDB connection error:", err.message);
+        console.error("❌ PostgreSQL connection error:", err.message);
         process.exit(1);
     }
 };
 
-export default connectDB;    
+export { pool }; // Export the pool to use it in your controllers/routes
+export default connectDB;
