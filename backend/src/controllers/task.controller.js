@@ -1,5 +1,6 @@
 import TaskService from '../services/task.service.js';
 import { successResponse, errorResponse } from '../Utils/response.js';
+import db from '../config/db.js';
 
 const TaskController = {
     async getAll(req, res) {
@@ -30,6 +31,17 @@ const TaskController = {
     } catch (err) {
       if (err.message === 'MISSING_REQUIRED_FIELDS') {
         return errorResponse(res, 'Missing required fields', 400);
+      }
+      if (err.message === 'COLUMN_NOT_FOUND') {
+        return errorResponse(res, 'Column not found', 404);
+      }
+      
+      if (err.message === 'ASSIGNEE_NOT_IN_WORKSPACE') {
+        return errorResponse(res, 'Assignee not in workspace', 400);
+      }
+      
+      if (err.message === 'CREATOR_NOT_IN_WORKSPACE') {
+        return errorResponse(res, 'Creator not in workspace', 400);
       }
       return errorResponse(res, err.message);
     }
