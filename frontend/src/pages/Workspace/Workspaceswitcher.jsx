@@ -22,10 +22,15 @@ const WorkspaceSwitcher = () => {
     const fetchData = async () => {
       try {
         const res = await getWorkspaces();
-        // Lưu ý: api trả về { data: [...] }
-        setWorkspaces(res.data.data || []);
+        console.log("API response:", res); // kiểm tra dữ liệu từ API
+        // Nếu getWorkspaces() trả về JSON như bạn dán, dùng res.data
+        if (res.success && Array.isArray(res.data)) {
+          setWorkspaces(res.data);
+        } else {
+          setWorkspaces([]);
+        }
       } catch (err) {
-        console.log(err);
+        console.error("Fetch workspaces error:", err);
         setError("Failed to load workspaces");
       } finally {
         setLoading(false);
@@ -39,7 +44,13 @@ const WorkspaceSwitcher = () => {
     return (
       <Box sx={{ p: 4, display: "flex", flexWrap: "wrap", gap: 3 }}>
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} variant="rectangular" width={260} height={150} sx={{ borderRadius: 3 }} />
+          <Skeleton
+            key={i}
+            variant="rectangular"
+            width={260}
+            height={150}
+            sx={{ borderRadius: 3 }}
+          />
         ))}
       </Box>
     );
@@ -93,13 +104,13 @@ const WorkspaceSwitcher = () => {
                 whiteSpace: "nowrap",
               }}
             >
-              {workspace.name}
+              {workspace.name || "No name"}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {workspace.description}
+              {workspace.description || "No description"}
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-              ID: {workspace.id}
+              ID: {workspace.id || "N/A"}
             </Typography>
           </CardContent>
         </Card>
