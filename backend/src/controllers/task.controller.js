@@ -49,7 +49,7 @@ const TaskController = {
 
   async delete(req, res) {
     try {
-      await TaskService.deleteTask(req.params.id);
+      await TaskService.deleteTask(req.params.id, req.body.user_id);
       return successResponse(res, null, 'Deleted successfully');
     } catch (err) {
       if (err.message === 'TASK_NOT_FOUND') {

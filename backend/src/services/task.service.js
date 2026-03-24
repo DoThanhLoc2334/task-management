@@ -1,5 +1,5 @@
 import TaskRepository from '../models/task.repository.js';
-
+import ActivityRepository from '../models/activity.repository.js';
 
 const TaskService = {
     async getAllTasks(query) {
@@ -25,11 +25,22 @@ const TaskService = {
   },
 
   async createTask(data) {
-    // validate tối thiểu
     if (!data.column_id || !data.assignee_id || !data.created_by) {
       throw new Error('MISSING_REQUIRED_FIELDS');
     }
-    return await TaskRepository.create(data);
+  
+    const task = await TaskRepository.create(data);
+  
+    // 🔥 log activity
+    await ActivityRepository.create({
+      workspace_id: null, // tạm thời
+      user_id: data.created_by,
+      entity_type: 'TASK',
+      entity_id: task.id,
+      action: 'CREATE'
+    });
+  
+    return task;
   },
 
   async updateTask(id, data) {
@@ -37,15 +48,36 @@ const TaskService = {
     if (!existing) {
       throw new Error('TASK_NOT_FOUND');
     }
-    return await TaskRepository.update(id, data);
+  
+    const updated = await TaskRepository.update(id, data);
+  
+    await ActivityRepository.create({
+      workspace_id: null,
+      user_id: data.updated_by || null,
+      entity_type: 'TASK',
+      entity_id: id,
+      action: 'UPDATE'
+    });
+  
+    return updated;
   },
 
-  async deleteTask(id) {
+  async deleteTask(id, user_id) {
     const existing = await TaskRepository.findById(id);
     if (!existing) {
       throw new Error('TASK_NOT_FOUND');
     }
+  
     await TaskRepository.delete(id);
+  
+    await ActivityRepository.create({
+      workspace_id: null,
+      user_id,
+      entity_type: 'TASK',
+      entity_id: id,
+      action: 'DELETE'
+    });
+  
     return true;
   }
 };
