@@ -102,7 +102,7 @@ function Login() {
                       }
                     }}
                   >
-                    Sign up
+                    Sign up 
                   </Button>
 
                   <Button
@@ -126,7 +126,7 @@ function Login() {
                   underline="hover"
                   sx={{ textAlign: "left", fontSize: 14 }}
                 >
-                  Forgot password?
+                  Forgot password? aaaaaaaaaaa
                 </Link>
               </Stack>
             </Box>
