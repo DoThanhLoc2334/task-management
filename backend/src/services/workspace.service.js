@@ -190,9 +190,160 @@ const WorkspaceService = {
       [newRole, workspaceId, targetUserId]
     );
 
-  return result.rows[0];
-}
+    return result.rows[0];
+  },
+  async removeMember(workspaceId, targetUserId, currentUserId) {
 
+    if (!workspaceId || !targetUserId) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Missing required fields');
+    }
+
+    // check workspace tồn tại
+    const workspace = await WorkspaceRepository.findById(workspaceId);
+    if (!workspace) {
+      throw new AppError(ERROR_CODES.WORKSPACE_NOT_FOUND, 404);
+    }
+
+    // check current user
+    const currentUser = await db.query(
+      `
+    SELECT role
+    FROM workspace_members
+    WHERE workspace_id = $1 AND user_id = $2
+    `,
+      [workspaceId, currentUserId]
+    );
+
+    if (!currentUser.rows.length) {
+      throw new AppError(ERROR_CODES.FORBIDDEN, 403);
+    }
+
+    // check target user
+    const targetUser = await db.query(
+      `
+    SELECT role
+    FROM workspace_members
+    WHERE workspace_id = $1 AND user_id = $2
+    `,
+      [workspaceId, targetUserId]
+    );
+
+    if (!targetUser.rows.length) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Member not found');
+    }
+
+    const currentRole = currentUser.rows[0].role;
+    const targetRole = targetUser.rows[0].role;
+
+    // không cho xoá OWNER
+    if (targetRole === 'OWNER') {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Cannot remove OWNER');
+    }
+
+    // CASE 1: user tự rời workspace
+    if (currentUserId === targetUserId) {
+      await db.query(
+        `
+      DELETE FROM workspace_members
+      WHERE workspace_id = $1 AND user_id = $2
+      `,
+        [workspaceId, targetUserId]
+      );
+
+      return { message: 'Left workspace successfully' };
+    }
+
+    // CASE 2: OWNER xoá member
+    if (currentRole !== 'OWNER') {
+      throw new AppError(ERROR_CODES.FORBIDDEN, 403);
+    }
+
+    await db.query(
+      `
+    DELETE FROM workspace_members
+    WHERE workspace_id = $1 AND user_id = $2
+    `,
+      [workspaceId, targetUserId]
+    );
+
+    return { message: 'Member removed successfully' };
+  },
+  async removeMember(workspaceId, targetUserId, currentUserId) {
+
+    if (!workspaceId || !targetUserId) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Missing required fields');
+    }
+
+    // check workspace tồn tại
+    const workspace = await WorkspaceRepository.findById(workspaceId);
+    if (!workspace) {
+      throw new AppError(ERROR_CODES.WORKSPACE_NOT_FOUND, 404);
+    }
+
+    // check current user
+    const currentUser = await db.query(
+      `
+    SELECT role
+    FROM workspace_members
+    WHERE workspace_id = $1 AND user_id = $2
+    `,
+      [workspaceId, currentUserId]
+    );
+
+    if (!currentUser.rows.length) {
+      throw new AppError(ERROR_CODES.FORBIDDEN, 403);
+    }
+
+    // check target user
+    const targetUser = await db.query(
+      `
+    SELECT role
+    FROM workspace_members
+    WHERE workspace_id = $1 AND user_id = $2
+    `,
+      [workspaceId, targetUserId]
+    );
+
+    if (!targetUser.rows.length) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Member not found');
+    }
+
+    const currentRole = currentUser.rows[0].role;
+    const targetRole = targetUser.rows[0].role;
+
+    // không cho xoá OWNER
+    if (targetRole === 'OWNER') {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Cannot remove OWNER');
+    }
+
+    // CASE 1: user tự rời workspace
+    if (currentUserId === targetUserId) {
+      await db.query(
+        `
+      DELETE FROM workspace_members
+      WHERE workspace_id = $1 AND user_id = $2
+      `,
+        [workspaceId, targetUserId]
+      );
+
+      return { message: 'Left workspace successfully' };
+    }
+
+    // CASE 2: OWNER xoá member
+    if (currentRole !== 'OWNER') {
+      throw new AppError(ERROR_CODES.FORBIDDEN, 403);
+    }
+
+    await db.query(
+      `
+    DELETE FROM workspace_members
+    WHERE workspace_id = $1 AND user_id = $2
+    `,
+      [workspaceId, targetUserId]
+    );
+
+    return { message: 'Member removed successfully' };
+  }
 };
 
 export default WorkspaceService;
