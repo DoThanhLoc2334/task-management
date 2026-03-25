@@ -10,7 +10,7 @@ const ColumnService = {
       throw new Error('MISSING_FIELDS');
     }
 
-    // 🔥 check user thuộc workspace qua project
+    //check user thuộc workspace qua project
     const check = await db.query(
       `
       SELECT wm.role
@@ -100,9 +100,7 @@ const ColumnService = {
     await ColumnRepository.delete(id);
   },
 
-  // 🔥🔥🔥 CORE LOGIC
   async reorderColumns(project_id, columns, userId) {
-
     // check permission
     const check = await db.query(
       `
@@ -122,8 +120,8 @@ const ColumnService = {
     for (const col of columns) {
       await ColumnRepository.updatePosition(col.id, col.position);
     }
-
-    return true;
+    const updatedColumns = await ColumnRepository.findByProject(project_id);
+    return updatedColumns;
   }
 };
 

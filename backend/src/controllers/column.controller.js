@@ -42,8 +42,8 @@ const ColumnController = {
   async reorder(req, res) {
     try {
       const { project_id, columns } = req.body;
-      await ColumnService.reorderColumns(project_id, columns, req.user.id);
-      return successResponse(res, null, 'Reordered');
+      const data =await ColumnService.reorderColumns(project_id, columns, req.user.id);
+      return successResponse(res, data, 'Reordered');
     } catch (err) {
       return errorResponse(res, err.message);
     }
