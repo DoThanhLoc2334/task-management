@@ -56,6 +56,9 @@ const AuthService = {
       accessToken,
       refreshToken
     };
+  },
+  async getAllUsers() {
+    return await UserRepository.findAll();
   }
 };
 

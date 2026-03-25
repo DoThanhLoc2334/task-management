@@ -1,58 +1,77 @@
-import React from "react";
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  CircularProgress
+} from "@mui/material";
 
-function CreateColumnModal({ onClose, onCreate }) {
-  const [columnName, setColumnName] = React.useState("");
+function CreateColumnModal({ open, onClose, onCreate }) {
+  const [columnName, setColumnName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleCreate = () => {
-    if (columnName.trim()) {
-      onCreate(columnName);
+  const handleCreate = async () => {
+    if (!columnName.trim()) {
+      setError("Column name is required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      await onCreate(columnName);
+
       setColumnName("");
       onClose();
+    } catch (err) {
+      setError("Create failed",err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: "rgba(0,0,0,0.3)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-      }}
-    >
-      <div
-        style={{
-          background: "white",
-          padding: "20px",
-          borderRadius: "8px",
-          width: "300px"
-        }}
-      >
-        <h2>Create New Column</h2>
+  const handleClose = () => {
+    if (loading) return; // đang loading thì không cho đóng
+    setColumnName("");
+    setError("");
+    onClose();
+  };
 
-        <input
-          type="text"
-          placeholder="Column Name"
+  return (
+    <Dialog open={open} onClose={handleClose}>
+      <DialogTitle>Create New Column</DialogTitle>
+
+      <DialogContent>
+        <TextField
+          fullWidth
+          label="Column Name"
           value={columnName}
           onChange={(e) => setColumnName(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px" }}
+          error={!!error}
+          helperText={error}
+          autoFocus
         />
+      </DialogContent>
 
-        <button onClick={handleCreate}>Create</button>
-
-        <button
-          onClick={onClose}
-          style={{ marginLeft: "10px" }}
-        >
+      <DialogActions>
+        <Button onClick={handleClose} disabled={loading}>
           Cancel
-        </button>
-      </div>
-    </div>
+        </Button>
+
+        <Button
+          onClick={handleCreate}
+          variant="contained"
+          disabled={loading}
+        >
+          {loading ? <CircularProgress size={20} /> : "Create"}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 

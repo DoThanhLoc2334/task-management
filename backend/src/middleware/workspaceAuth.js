@@ -17,6 +17,7 @@ const workspaceAuth = (requiredRoles = []) => {
       const workspaceId =
         req.body.workspace_id ||
         req.params.workspace_id ||
+        req.params.id ||
         req.query.workspace_id;
 
       if (!workspaceId) {

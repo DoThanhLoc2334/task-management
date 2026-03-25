@@ -8,3 +8,4 @@ const register = (data) =>{
   return instance.post('/auth/register', data);
 }
 export {login, register}; 
+

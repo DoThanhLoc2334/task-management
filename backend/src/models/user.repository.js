@@ -18,6 +18,12 @@ const UserRepository = {
     );
 
     return result.rows[0];
+  },
+  async findAll() {
+    const result = await db.query(
+      `SELECT id, email, name FROM users`
+    );
+    return result.rows;
   }
 };
 
