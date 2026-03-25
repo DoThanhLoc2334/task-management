@@ -59,26 +59,43 @@ const WorkspaceController = {
       next(err);
     }
   },
-  
+
   async changeRole(req, res, next) {
-  try {
-    const workspaceId = req.params.id;       // /:id
-    const targetUserId = req.params.userId;  // /members/:userId
-    const { role } = req.body;
+    try {
+      const workspaceId = req.params.id;       // /:id
+      const targetUserId = req.params.userId;  // /members/:userId
+      const { role } = req.body;
 
-    const data = await WorkspaceService.changeRole(
-      workspaceId,
-      targetUserId,
-      role,
-      req.user.id
-    );
+      const data = await WorkspaceService.changeRole(
+        workspaceId,
+        targetUserId,
+        role,
+        req.user.id
+      );
 
-    return successResponse(res, data, 'Role updated');
+      return successResponse(res, data, 'Role updated');
 
-  } catch (err) {
-    next(err);
+    } catch (err) {
+      next(err);
+    }
+  },
+  async removeMember(req, res, next) {
+    try {
+      const workspaceId = req.params.id;
+      const targetUserId = req.params.userId;
+
+      const data = await WorkspaceService.removeMember(
+        workspaceId,
+        targetUserId,
+        req.user.id
+      );
+
+      return successResponse(res, data, data.message);
+
+    } catch (err) {
+      next(err);
+    }
   }
-}
 
 };
 

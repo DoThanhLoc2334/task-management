@@ -68,7 +68,7 @@ const WorkspaceService = {
       role: result.rows[0].role
     };
   },
-  
+
   async addMember(workspaceId, userId, role, currentUserId) {
 
     if (!workspaceId || !userId) {
@@ -123,75 +123,151 @@ const WorkspaceService = {
   },
   async changeRole(workspaceId, targetUserId, newRole, currentUserId) {
 
-  //  validate input
-  if (!workspaceId || !targetUserId || !newRole) {
-    throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Missing required fields');
-  }
+    //  validate input
+    if (!workspaceId || !targetUserId || !newRole) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Missing required fields');
+    }
 
-  //  validate role hợp lệ
-  const validRoles = ['OWNER', 'ADMIN', 'MEMBER'];
+    //  validate role hợp lệ
+    const validRoles = ['OWNER', 'ADMIN', 'MEMBER'];
 
-  if (!validRoles.includes(newRole)) {
-    throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Invalid role');
-  }
+    if (!validRoles.includes(newRole)) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Invalid role');
+    }
 
-  //  không cho set OWNER (tránh conflict quyền)
-  if (newRole === 'OWNER') {
-    throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Cannot assign OWNER role');
-  }
+    //  không cho set OWNER (tránh conflict quyền)
+    if (newRole === 'OWNER') {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Cannot assign OWNER role');
+    }
 
-  //  check workspace tồn tại
-  const workspace = await WorkspaceRepository.findById(workspaceId);
-  if (!workspace) {
-    throw new AppError(ERROR_CODES.WORKSPACE_NOT_FOUND, 404);
-  }
+    //  check workspace tồn tại
+    const workspace = await WorkspaceRepository.findById(workspaceId);
+    if (!workspace) {
+      throw new AppError(ERROR_CODES.WORKSPACE_NOT_FOUND, 404);
+    }
 
-  //  check current user có phải OWNER không
-  const currentUser = await db.query(
-    `
+    //  check current user có phải OWNER không
+    const currentUser = await db.query(
+      `
     SELECT role
     FROM workspace_members
     WHERE workspace_id = $1 AND user_id = $2
     `,
-    [workspaceId, currentUserId]
-  );
+      [workspaceId, currentUserId]
+    );
 
-  if (!currentUser.rows.length || currentUser.rows[0].role !== 'OWNER') {
-    throw new AppError(ERROR_CODES.FORBIDDEN, 403);
-  }
+    if (!currentUser.rows.length || currentUser.rows[0].role !== 'OWNER') {
+      throw new AppError(ERROR_CODES.FORBIDDEN, 403);
+    }
 
-  // check target user có trong workspace không
-  const targetUser = await db.query(
-    `
+    // check target user có trong workspace không
+    const targetUser = await db.query(
+      `
     SELECT role
     FROM workspace_members
     WHERE workspace_id = $1 AND user_id = $2
     `,
-    [workspaceId, targetUserId]
-  );
+      [workspaceId, targetUserId]
+    );
 
-  if (!targetUser.rows.length) {
-    throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Member not found');
-  }
+    if (!targetUser.rows.length) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Member not found');
+    }
 
-  //  không cho đổi role của OWNER
-  if (targetUser.rows[0].role === 'OWNER') {
-    throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Cannot change OWNER role');
-  }
+    //  không cho đổi role của OWNER
+    if (targetUser.rows[0].role === 'OWNER') {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Cannot change OWNER role');
+    }
 
-  // update role
-  const result = await db.query(
-    `
+    // update role
+    const result = await db.query(
+      `
     UPDATE workspace_members
     SET role = $1
     WHERE workspace_id = $2 AND user_id = $3
     RETURNING workspace_id, user_id, role
     `,
-    [newRole, workspaceId, targetUserId]
-  );
+      [newRole, workspaceId, targetUserId]
+    );
 
-  return result.rows[0];
-}
+    return result.rows[0];
+  },
+  async removeMember(workspaceId, targetUserId, currentUserId) {
+
+    if (!workspaceId || !targetUserId) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Missing required fields');
+    }
+
+    // check workspace tồn tại
+    const workspace = await WorkspaceRepository.findById(workspaceId);
+    if (!workspace) {
+      throw new AppError(ERROR_CODES.WORKSPACE_NOT_FOUND, 404);
+    }
+
+    // check current user
+    const currentUser = await db.query(
+      `
+    SELECT role
+    FROM workspace_members
+    WHERE workspace_id = $1 AND user_id = $2
+    `,
+      [workspaceId, currentUserId]
+    );
+
+    if (!currentUser.rows.length) {
+      throw new AppError(ERROR_CODES.FORBIDDEN, 403);
+    }
+
+    // check target user
+    const targetUser = await db.query(
+      `
+    SELECT role
+    FROM workspace_members
+    WHERE workspace_id = $1 AND user_id = $2
+    `,
+      [workspaceId, targetUserId]
+    );
+
+    if (!targetUser.rows.length) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Member not found');
+    }
+
+    const currentRole = currentUser.rows[0].role;
+    const targetRole = targetUser.rows[0].role;
+
+    // không cho xoá OWNER
+    if (targetRole === 'OWNER') {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Cannot remove OWNER');
+    }
+
+    // CASE 1: user tự rời workspace
+    if (currentUserId === targetUserId) {
+      await db.query(
+        `
+      DELETE FROM workspace_members
+      WHERE workspace_id = $1 AND user_id = $2
+      `,
+        [workspaceId, targetUserId]
+      );
+
+      return { message: 'Left workspace successfully' };
+    }
+
+    // CASE 2: OWNER xoá member
+    if (currentRole !== 'OWNER') {
+      throw new AppError(ERROR_CODES.FORBIDDEN, 403);
+    }
+
+    await db.query(
+      `
+    DELETE FROM workspace_members
+    WHERE workspace_id = $1 AND user_id = $2
+    `,
+      [workspaceId, targetUserId]
+    );
+
+    return { message: 'Member removed successfully' };
+  }
 
 };
 
