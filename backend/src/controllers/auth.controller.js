@@ -35,6 +35,25 @@ const AuthController = {
     } catch (err) {
       return errorResponse(res, err.message);
     }
+  },
+  async getUsersNotInWorkspace(req, res) {
+    try {
+      const workspaceId = req.query.workspace_id;
+
+      const users = await AuthService.getUsersNotInWorkspace(workspaceId);
+
+      return res.json({
+        success: true,
+        data: users
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        message: err.message
+      });
+    }
   }
 
 };

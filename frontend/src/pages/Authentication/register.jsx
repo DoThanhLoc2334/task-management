@@ -210,7 +210,7 @@ function Register() {
       >
         <Box
           component="img"
-          src="https://img.freepik.com/free-vector/sign-up-concept-illustration_114360-7965.jpg"
+          src="https://base.vn/wp-content/uploads/2024/05/Project-manager-1-1.webp"
           sx={{ width: "80%", maxWidth: 500 }}
         />
       </Grid>

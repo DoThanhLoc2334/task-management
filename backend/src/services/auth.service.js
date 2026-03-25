@@ -1,9 +1,11 @@
 import bcrypt from 'bcrypt';
 import UserRepository from '../models/user.repository.js';
+import WorkspaceRepository from '../models/workspace.repository.js';
 import {
   generateAccessToken,
   generateRefreshToken
 } from '../Utils/generateToken.js';
+import WorkspaceService from './workspace.service.js';
 
 const AuthService = {
   async register({ email, name, password }) {
@@ -59,7 +61,16 @@ const AuthService = {
   },
   async getAllUsers() {
     return await UserRepository.findAll();
+  },
+
+  async getUsersNotInWorkspace(workspaceId) {
+    if (!workspaceId) {
+      throw new Error('workspace_id is required');
+    }
+
+    return await WorkspaceRepository.getUsersNotInWorkspace(workspaceId);
   }
+
 };
 
 export default AuthService;

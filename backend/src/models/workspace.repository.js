@@ -37,6 +37,21 @@ const WorkspaceRepository = {
     );
 
     return result.rows[0];
+  },
+  async getUsersNotInWorkspace(workspaceId) {
+    const result = await db.query(
+      `
+      SELECT u.*
+      FROM users u
+      LEFT JOIN workspace_members wm 
+        ON u.id = wm.user_id 
+        AND wm.workspace_id = $1
+      WHERE wm.user_id IS NULL
+      `,
+      [workspaceId]
+    );
+
+    return result.rows;
   }
 };
 

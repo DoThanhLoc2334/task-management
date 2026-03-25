@@ -191,7 +191,8 @@ const WorkspaceService = {
   );
 
   return result.rows[0];
-}
+},
+
 
 };
 

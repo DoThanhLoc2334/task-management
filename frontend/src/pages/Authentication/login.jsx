@@ -67,7 +67,7 @@ function Login() {
             mb: { xs: 6, md: 12 } 
           }}
         >
-          Digital
+          Login In Task Management
         </Typography>
 
         {/* Form Container - Căn giữa theo chiều dọc */}
@@ -83,7 +83,7 @@ function Login() {
                 fontSize: { xs: '2rem', md: '3rem' }
               }}
             >
-              Artificial Intelligence Driving Results For The Travel Industry
+              TASK MANAGEMENT
             </Typography>
             
             <Typography variant="body1" sx={{ color: "#757575", mb: 6, fontSize: '1.1rem' }}>
@@ -102,7 +102,7 @@ function Login() {
                     fullWidth
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="hakeem@digital.com"
+                    placeholder="USER@GMAIL.com"
                     InputProps={{ 
                       disableUnderline: false,
                       sx: { py: 1, fontSize: '1rem', color: '#4669fa' } 
@@ -220,7 +220,7 @@ function Login() {
         }}
       >
         {/* Top Navigation */}
-        <Stack 
+        {/* <Stack 
           direction="row" 
           spacing={5} 
           sx={{ position: "absolute", top: 48 }}
@@ -231,12 +231,12 @@ function Login() {
               {item}
             </Link>
           ))}
-        </Stack>
+        </Stack> */}
 
         {/* Central Illustration */}
         <Box 
           component="img"
-          src="https://img.freepik.com/free-vector/delivery-service-with-mask-concept_23-2148505116.jpg" 
+          src="https://arito.vn/wp-content/uploads/2024/07/Screenshot-2024-07-21-at-15.39.51-1.png" 
           alt="Illustration"
           sx={{ 
             width: "85%", 

@@ -14,11 +14,16 @@ const workspaceAuth = (requiredRoles = []) => {
       }
 
       // 👉 lấy workspace_id từ nhiều nguồn
+      // const workspaceId =
+      //   req.body.workspace_id ||
+      //   req.params.workspace_id ||
+      //   req.params.id ||
+      //   req.query.workspace_id;
       const workspaceId =
-        req.body.workspace_id ||
-        req.params.workspace_id ||
-        req.params.id ||
-        req.query.workspace_id;
+        req.body?.workspace_id ||
+        req.params?.workspace_id ||
+        req.params?.id ||
+        req.query?.workspace_id;
 
       if (!workspaceId) {
         return res.status(400).json({
