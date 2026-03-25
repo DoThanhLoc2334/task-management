@@ -10,4 +10,9 @@ router.get('/', authMiddleware,WorkspaceController.getAll);
 router.get('/:id', authMiddleware, WorkspaceController.getById);
 router.post('/:id/members', authMiddleware,workspaceAuth(["OWNER"]), WorkspaceController.addMember);
 router.patch('/:id/members/:userId', authMiddleware, WorkspaceController.changeRole);
+router.delete(
+  '/:id/members/:userId',
+  authMiddleware,
+  WorkspaceController.removeMember
+);
 export default router;
