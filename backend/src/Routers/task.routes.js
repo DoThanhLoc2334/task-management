@@ -25,7 +25,7 @@ router.get(
   );
   
   router.put(
-    '/:id',
+    '/:id', 
     authMiddleware,
     permissionMiddleware(['owner', 'admin', 'member']),
     TaskController.update

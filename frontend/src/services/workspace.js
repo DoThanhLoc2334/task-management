@@ -15,3 +15,8 @@ export const createWorkspace = async (data) => {
   const res = await instance.post("/workspaces", data);
   return res.data;
 };
+
+// 🔥 Add member vào workspace
+export const addMemberToWorkspace = (workspaceId, data) => {
+  return instance.post(`/workspaces/${workspaceId}/members`, data);
+};

@@ -5,47 +5,71 @@ import ColumnContainer from "../../components/board/ColumnContainer";
 import AddColumnButton from "../../components/board/AddColumnButton";
 import CreateColumnModal from "../../modals/Creation/CreateColumnModal";
 
-import { getColumnsByProject, createColumn } from "../../services/columnsServices";
+import {
+  getColumnsByProject,
+  createColumn
+} from "../../services/columnsService.js";
 
 const ProjectBoard = () => {
   const { id: projectId } = useParams();
 
   const [columnList, setColumnList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false); // 👈 loading create
   const [error, setError] = useState(null);
   const [openCreateColumn, setOpenCreateColumn] = useState(false);
 
-  // Fetch columns từ backend
-  useEffect(() => {
-    const fetchColumns = async () => {
-      try {
-        const res = await getColumnsByProject(projectId);
-        setColumnList(res.data?.data || []);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load columns");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchColumns();
-  }, [projectId]);
-
-  const addColumn = async (name) => {
+  // 🔥 FETCH DATA (tách riêng)
+  const fetchColumns = async () => {
     try {
-      const res = await createColumn({ name, project_id: projectId });
-      setColumnList((prev) => [...prev, res.data]);
+      setLoading(true);
+
+      const res = await getColumnsByProject(projectId);
+
+      const data = res.data?.data || [];
+
+      // 👇 chống undefined
+      setColumnList(data.filter((c) => c && c.id));
     } catch (err) {
       console.error(err);
-      alert("Failed to create column");
+      setError("Failed to load columns");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // 🔥 gọi khi load page
+  useEffect(() => {
+    fetchColumns();
+  }, [projectId]);
+
+  // 🔥 CREATE COLUMN
+  const addColumn = async (name) => {
+    try {
+      setCreating(true);
+
+      await createColumn({
+        name,
+        project_id: projectId
+      });
+
+      // 👇 fetch lại cho chắc chắn data đúng
+      await fetchColumns();
+
+    } catch (err) {
+      console.error(err);
+      alert("Create column failed");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  // 🔥 UI loading
   if (loading) {
     return <div style={{ padding: 20 }}>Loading columns...</div>;
   }
 
+  // 🔥 UI error
   if (error) {
     return <div style={{ padding: 20, color: "red" }}>{error}</div>;
   }
@@ -59,7 +83,7 @@ const ProjectBoard = () => {
           <ColumnContainer
             key={column.id}
             column={column}
-            tasks={[]}  // chưa cần tasks
+            tasks={[]}
             setTaskList={() => {}}
             onAddTask={() => {}}
           />
@@ -68,12 +92,13 @@ const ProjectBoard = () => {
         <AddColumnButton onClick={() => setOpenCreateColumn(true)} />
       </div>
 
-      {openCreateColumn && (
-        <CreateColumnModal
-          onClose={() => setOpenCreateColumn(false)}
-          onCreate={addColumn}
-        />
-      )}
+      {/* 🔥 MODAL */}
+      <CreateColumnModal
+        open={openCreateColumn}
+        onClose={() => setOpenCreateColumn(false)}
+        onCreate={addColumn}
+        loading={creating} // 👈 optional nếu bạn muốn dùng
+      />
     </div>
   );
 };

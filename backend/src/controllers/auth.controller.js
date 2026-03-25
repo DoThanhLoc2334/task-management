@@ -27,7 +27,16 @@ const AuthController = {
       }
       return errorResponse(res, err.message);
     }
+  },
+  async getUsers(req, res) {
+    try {
+      const data = await AuthService.getAllUsers();
+      return successResponse(res, data, "Get users success");
+    } catch (err) {
+      return errorResponse(res, err.message);
+    }
   }
+
 };
 
 export default AuthController;
