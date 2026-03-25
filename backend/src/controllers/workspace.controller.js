@@ -41,7 +41,7 @@ const WorkspaceController = {
     }
   },
 
-  // 🔥 THÊM ĐOẠN NÀY
+
   async addMember(req, res, next) {
     try {
       const workspaceId = req.params.id;
@@ -58,7 +58,27 @@ const WorkspaceController = {
     } catch (err) {
       next(err);
     }
+  },
+  
+  async changeRole(req, res, next) {
+  try {
+    const workspaceId = req.params.id;       // /:id
+    const targetUserId = req.params.userId;  // /members/:userId
+    const { role } = req.body;
+
+    const data = await WorkspaceService.changeRole(
+      workspaceId,
+      targetUserId,
+      role,
+      req.user.id
+    );
+
+    return successResponse(res, data, 'Role updated');
+
+  } catch (err) {
+    next(err);
   }
+}
 
 };
 

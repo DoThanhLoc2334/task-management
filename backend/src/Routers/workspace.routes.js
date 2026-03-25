@@ -8,4 +8,5 @@ router.post('/', authMiddleware, WorkspaceController.create);
 router.get('/', authMiddleware,WorkspaceController.getAll);
 router.get('/:id', authMiddleware, WorkspaceController.getById);
 router.post('/:id/members', authMiddleware, WorkspaceController.addMember);
+router.patch('/:id/members/:userId', authMiddleware, WorkspaceController.changeRole);
 export default router;
