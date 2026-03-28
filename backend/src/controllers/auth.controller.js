@@ -54,6 +54,29 @@ const AuthController = {
         message: err.message
       });
     }
+  },
+  async getUsersInWorkspace(req, res) {
+    try {
+      const workspaceId = req.query.workspace_id;
+
+      if (!workspaceId) {
+        return errorResponse(res, "workspace_id is required", 400);
+      }
+
+      const users = await AuthService.getUsersInWorkspace(workspaceId);
+
+      return res.json({
+        success: true,
+        data: users
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        success: false,
+        message: err.message
+      });
+    }
   }
 
 };

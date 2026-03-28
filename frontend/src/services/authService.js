@@ -16,5 +16,8 @@ const getUsers = () => {
 const getUsersNotInWorkspace = (workspaceId) => {
   return instance.get(`/auth/invitemenber?workspace_id=${workspaceId}`);
 };
-export {login, register,getUsers,getUsersNotInWorkspace}; 
+const getUsersInWorkspace = (workspaceId) => {
+  return instance.get(`/auth/menber?workspace_id=${workspaceId}`);
+}
+export {login, register,getUsers,getUsersNotInWorkspace,getUsersInWorkspace}; 
 

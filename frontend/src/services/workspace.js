@@ -24,3 +24,6 @@ export const addMemberToWorkspace = (workspaceId, data) => {
 export const removeMemberFromWorkspace = (workspaceId, userId) => {
   return instance.delete(`/workspaces/${workspaceId}/members/${userId}`);
 };
+export const changeMemberRole = (workspaceId, userId, role) => {
+  return instance.patch(`/workspaces/${workspaceId}/members/${userId}`, { role });
+};

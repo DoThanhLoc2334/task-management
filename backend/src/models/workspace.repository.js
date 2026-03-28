@@ -52,6 +52,20 @@ const WorkspaceRepository = {
     );
 
     return result.rows;
+  },
+  async getUsersInWorkspace(workspaceId) {
+    const result = await db.query(
+      `
+      SELECT u.id, u.name, u.email, wm.role
+      FROM users u
+      INNER JOIN workspace_members wm
+          ON u.id = wm.user_id
+      WHERE wm.workspace_id = $1;
+      `,
+      [workspaceId]
+    );
+
+    return result.rows; 
   }
 };
 

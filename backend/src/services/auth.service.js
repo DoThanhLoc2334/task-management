@@ -69,6 +69,12 @@ const AuthService = {
     }
 
     return await WorkspaceRepository.getUsersNotInWorkspace(workspaceId);
+  },
+  async getUsersInWorkspace(workspaceId){
+    if(!workspaceId){
+      throw new Error('workspace_id is required')
+    }
+    return await WorkspaceRepository.getUsersInWorkspace(workspaceId);
   }
 
 };

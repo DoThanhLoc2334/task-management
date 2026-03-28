@@ -8,5 +8,5 @@ router.post('/register', AuthController.register);
 router.post('/login', AuthController.login);
 router.get('/user',authMiddleware,AuthController.getUsers)
 router.get('/invitemenber',authMiddleware, AuthController.getUsersNotInWorkspace);
-
+router.get('/menber',authMiddleware,AuthController.getUsersInWorkspace);
 export default router;
