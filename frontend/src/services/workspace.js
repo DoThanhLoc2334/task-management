@@ -16,7 +16,11 @@ export const createWorkspace = async (data) => {
   return res.data;
 };
 
-// 🔥 Add member vào workspace
+
 export const addMemberToWorkspace = (workspaceId, data) => {
   return instance.post(`/workspaces/${workspaceId}/members`, data);
+};
+
+export const removeMemberFromWorkspace = (workspaceId, userId) => {
+  return instance.delete(`/workspaces/${workspaceId}/members/${userId}`);
 };

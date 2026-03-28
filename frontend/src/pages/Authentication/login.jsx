@@ -219,20 +219,6 @@ function Login() {
           overflow: "hidden"
         }}
       >
-        {/* Top Navigation */}
-        {/* <Stack 
-          direction="row" 
-          spacing={5} 
-          sx={{ position: "absolute", top: 48 }}
-        >
-          <Link href="#" underline="none" sx={{ color: "#212121", fontWeight: 700, borderBottom: "3px solid #4669fa", pb: 0.5 }}>Home</Link>
-          {['About us', 'Blog', 'Pricing'].map((item) => (
-            <Link key={item} href="#" underline="none" sx={{ color: "#9e9e9e", fontWeight: 600, '&:hover': { color: '#212121' } }}>
-              {item}
-            </Link>
-          ))}
-        </Stack> */}
-
         {/* Central Illustration */}
         <Box 
           component="img"
