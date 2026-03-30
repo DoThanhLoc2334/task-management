@@ -14,7 +14,6 @@ router.get(
   router.get(
     '/:id',
     authMiddleware,
-    permissionMiddleware(['owner', 'admin', 'member', 'viewer']),
     TaskController.getById
   );
   
@@ -27,14 +26,12 @@ router.get(
   router.put(
     '/:id', 
     authMiddleware,
-    permissionMiddleware(['owner', 'admin', 'member']),
     TaskController.update
   );
   
   router.delete(
     '/:id',
     authMiddleware,
-    permissionMiddleware(['owner', 'admin']),
     TaskController.delete
   );
 
