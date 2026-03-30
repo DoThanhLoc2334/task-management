@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -25,38 +25,27 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 import { getUsersInWorkspace } from "../../services/authService";
-import { 
-  changeMemberRole, 
-  removeMemberFromWorkspace, 
-  leaveWorkspace 
+import {
+  changeMemberRole,
+  removeMemberFromWorkspace,
+  leaveWorkspace,
 } from "../../services/workspace";
 import { parseToken } from "../../Utils/parseToken";
 
-const WorkspaceMembers = () => {
-  const { id: workspaceId } = useParams();
-  const navigate = useNavigate();
-
+// ==================== CUSTOM HOOK ====================
+const useWorkspaceMembers = (workspaceId) => {
   const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
   const [currentUserId, setCurrentUserId] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState(null);
-
-  const [roleEditing, setRoleEditing] = useState(null);
-  const [roleChanging, setRoleChanging] = useState({});
-
-  // Dialogs
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, userId: null, userName: "" });
-  const [leaveDialog, setLeaveDialog] = useState(false);
-
-  const ROLES = ["owner", "moderator", "member", "guest"];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem("accessToken");
       const userInfo = parseToken(token);
-      if (userInfo) {
+
+      if (userInfo?.id) {
         setCurrentUserId(userInfo.id);
       }
 
@@ -64,23 +53,26 @@ const WorkspaceMembers = () => {
         setLoading(true);
         const res = await getUsersInWorkspace(workspaceId);
         const membersData = res.data?.data || [];
-        
-        // Convert role to lowercase
-        const normalizedMembers = membersData.map(m => ({
+
+        // Normalize role to lowercase
+        const normalizedMembers = membersData.map((m) => ({
           ...m,
-          role: m.role.toLowerCase()
+          role: m.role.toLowerCase(),
         }));
+
         setMembers(normalizedMembers);
 
-        // Set current user role from members list
-        if (userInfo) {
-          const currentMember = normalizedMembers.find(m => String(m.id) === String(userInfo.id));
+        // Set current user role
+        if (userInfo?.id) {
+          const currentMember = normalizedMembers.find(
+            (m) => String(m.id) === String(userInfo.id)
+          );
           if (currentMember) {
             setCurrentUserRole(currentMember.role);
           }
         }
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch workspace members:", err);
         setError("Failed to load members");
       } finally {
         setLoading(false);
@@ -90,8 +82,41 @@ const WorkspaceMembers = () => {
     if (workspaceId) fetchData();
   }, [workspaceId]);
 
-  // Change Role
-  const handleRoleChange = async (userId, newRole) => {
+  return {
+    members,
+    setMembers,
+    currentUserId,
+    currentUserRole,
+    loading,
+    error,
+  };
+};
+
+// ==================== MAIN COMPONENT ====================
+const WorkspaceMembers = () => {
+  const { id: workspaceId } = useParams();
+  const navigate = useNavigate();
+
+  const {
+    members,
+    setMembers,
+    currentUserId,
+    currentUserRole,
+    loading,
+    error,
+  } = useWorkspaceMembers(workspaceId);
+
+  const [roleEditing, setRoleEditing] = useState(null);
+  const [roleChanging, setRoleChanging] = useState({});
+
+  // Dialog states
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, userId: null, userName: "" });
+  const [leaveDialog, setLeaveDialog] = useState(false);
+
+  const ROLES = ["owner", "moderator", "member", "guest"];
+
+  // ====================== HANDLERS ======================
+  const handleRoleChange = useCallback(async (userId, newRole) => {
     try {
       setRoleChanging((prev) => ({ ...prev, [userId]: true }));
       await changeMemberRole(workspaceId, userId, newRole);
@@ -106,14 +131,13 @@ const WorkspaceMembers = () => {
     } finally {
       setRoleChanging((prev) => ({ ...prev, [userId]: false }));
     }
-  };
+  }, [workspaceId, setMembers]);
 
-  // Remove Member (Owner only)
-  const handleOpenDeleteDialog = (userId, userName) => {
+  const handleOpenDeleteDialog = useCallback((userId, userName) => {
     setDeleteDialog({ open: true, userId, userName });
-  };
+  }, []);
 
-  const handleRemoveMember = async () => {
+  const handleRemoveMember = useCallback(async () => {
     try {
       await removeMemberFromWorkspace(workspaceId, deleteDialog.userId);
       setMembers((prev) => prev.filter((m) => m.id !== deleteDialog.userId));
@@ -122,39 +146,37 @@ const WorkspaceMembers = () => {
       console.error(err);
       alert(err.response?.data?.message || "Failed to remove member");
     }
-  };
+  }, [workspaceId, deleteDialog.userId, setMembers]);
 
-  // Leave Workspace
-  const handleOpenLeaveDialog = () => {
-    setLeaveDialog(true);
-  };
-
-  const handleLeaveWorkspace = async () => {
+  const handleLeaveWorkspace = useCallback(async () => {
     try {
       await leaveWorkspace(workspaceId);
       alert("You have successfully left the workspace.");
-      navigate("/workspaces");   // Điều hướng về trang danh sách workspace
+      navigate("/workspaces");
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Failed to leave workspace");
     } finally {
       setLeaveDialog(false);
     }
-  };
+  }, [workspaceId, navigate]);
 
-  if (loading)
+  // ====================== RENDER ======================
+  if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
         <CircularProgress />
       </Box>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <Typography color="error" align="center" mt={4}>
         {error}
       </Typography>
     );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -175,7 +197,9 @@ const WorkspaceMembers = () => {
           <TableBody>
             {members.map((member) => {
               const isCurrentUser = String(member.id) === String(currentUserId);
-              const isOwner = currentUserRole === "owner";
+              const canManage = currentUserRole === "owner";
+              const canLeave = isCurrentUser && 
+                (member.role === "member" || member.role === "moderator");
 
               return (
                 <TableRow key={member.id}>
@@ -185,14 +209,12 @@ const WorkspaceMembers = () => {
                   </TableCell>
                   <TableCell>{member.email}</TableCell>
                   <TableCell>
-                    <strong>
-                      {member.role.toUpperCase()}
-                    </strong>
+                    <strong>{member.role.toUpperCase()}</strong>
                   </TableCell>
 
                   <TableCell align="center">
-                    {/* OWNER: Change Role + Remove */}
-                    {currentUserRole === "owner" && !isCurrentUser && (
+                    {/* Owner Actions */}
+                    {canManage && !isCurrentUser && (
                       <Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "wrap" }}>
                         <Button
                           variant="outlined"
@@ -215,7 +237,7 @@ const WorkspaceMembers = () => {
                       </Box>
                     )}
 
-                    {/* Role Editing Select */}
+                    {/* Role Editing */}
                     {roleEditing === member.id && (
                       <FormControl size="small" sx={{ minWidth: 160 }}>
                         <Select
@@ -240,14 +262,14 @@ const WorkspaceMembers = () => {
                       </FormControl>
                     )}
 
-                    {/* LEAVE WORKSPACE - Chỉ cho chính mình (Member/Moderator) */}
-                    {isCurrentUser && (member.role === "member" || member.role === "moderator") && (
+                    {/* Leave Workspace Button */}
+                    {canLeave && (
                       <Button
                         variant="outlined"
                         color="error"
                         size="small"
                         startIcon={<LogoutIcon />}
-                        onClick={handleOpenLeaveDialog}
+                        onClick={() => setLeaveDialog(true)}
                       >
                         Leave Workspace
                       </Button>
@@ -264,7 +286,7 @@ const WorkspaceMembers = () => {
         Roles: owner = all permissions, moderator = CRUD columns, member = CRUD assigned tasks, guest = view/comment only
       </Typography>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, userId: null, userName: "" })}>
         <DialogTitle>Remove Member</DialogTitle>
         <DialogContent>
@@ -281,7 +303,7 @@ const WorkspaceMembers = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Leave Confirmation Dialog */}
+      {/* Leave Dialog */}
       <Dialog open={leaveDialog} onClose={() => setLeaveDialog(false)}>
         <DialogTitle>Leave Workspace</DialogTitle>
         <DialogContent>
