@@ -5,12 +5,11 @@ import { parseToken } from "../../Utils/parseToken";
 function CreateTaskModal({ columnId, onClose, onAddTask }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  // const [assignee, setAssignee] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [startDate, setStartDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("accessToken");
   const user = parseToken(token);
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,23 +20,17 @@ function CreateTaskModal({ columnId, onClose, onAddTask }) {
       setLoading(true);
       setError("");
 
-      // const payload = {
-      //   column_id: columnId,
-      //   title,
-      //   description,
-      //   created_by: user?.id,
-      //   start_date: new Date().toISOString().split("T")[0],
-      //   due_date: dueDate || null,
-        
-      // };
-
       const payload = {
-  column_id: columnId,
-  title,
-  description,
-  start_date: formatDateTime(startDate),
-  due_date: formatDateTime(dueDate)
-};
+        column_id: columnId,
+        title,
+        description,
+        created_by: user?.id,
+        start_date: new Date().toISOString().split("T")[0],
+        due_date: dueDate || null,
+        
+      };
+
+
       console.log("PAYLOAD:", payload);
       const res = await createTask(payload);
 
@@ -50,7 +43,7 @@ function CreateTaskModal({ columnId, onClose, onAddTask }) {
       // reset form
       setTitle("");
       setDescription("");
-      setAssignee("");
+   
       setDueDate("");
 
       onClose();

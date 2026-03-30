@@ -27,6 +27,7 @@ const TaskController = {
   async create(req, res) {
     try {
       const data = await TaskService.createTask(req.body);
+      console.log("Created task:", data);
       return successResponse(res, data, 'Task created');
     } catch (err) {
       if (err.message === 'MISSING_REQUIRED_FIELDS') {
