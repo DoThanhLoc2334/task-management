@@ -1,49 +1,80 @@
 import React, { useState } from "react";
-import { users } from "../../mock/mockData";
+import { createTask } from "../../services/task.service";
+import { parseToken } from "../../Utils/parseToken";
 
 function CreateTaskModal({ columnId, onClose, onAddTask }) {
-
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [assignee, setAssignee] = useState("");
+  // const [assignee, setAssignee] = useState("");
   const [dueDate, setDueDate] = useState("");
-
-  const handleSubmit = (e) => {
+  const [startDate, setStartDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const token = localStorage.getItem("token");
+  const user = parseToken(token);
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title.trim()) return;
 
-    const newTask = {
-      id: "t" + Date.now(),
-      title,
-      description,
-      assignee_id: assignee || null,
-      due_date: dueDate,
-      column_id: columnId,
-      created_by: "u1"
-    };
+    try {
+      setLoading(true);
+      setError("");
 
-    // Add task vào state
-    onAddTask(newTask);
+      // const payload = {
+      //   column_id: columnId,
+      //   title,
+      //   description,
+      //   created_by: user?.id,
+      //   start_date: new Date().toISOString().split("T")[0],
+      //   due_date: dueDate || null,
+        
+      // };
 
-    // Reset form
-    setTitle("");
-    setDescription("");
-    setAssignee("");
-    setDueDate("");
+      const payload = {
+  column_id: columnId,
+  title,
+  description,
+  start_date: formatDateTime(startDate),
+  due_date: formatDateTime(dueDate)
+};
+      console.log("PAYLOAD:", payload);
+      const res = await createTask(payload);
 
-    onClose();
+      // 👉 data trả về từ backend
+      const newTask = res.data;
+
+      // update UI
+      onAddTask(newTask);
+
+      // reset form
+      setTitle("");
+      setDescription("");
+      setAssignee("");
+      setDueDate("");
+
+      onClose();
+
+    } catch (err) {
+      console.error(err);
+      setError("Failed to create task");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-
     <div style={overlayStyle}>
-
       <div style={modalStyle}>
-
         <h2>Create Task</h2>
 
         <form onSubmit={handleSubmit}>
+
+          {error && (
+            <p style={{ color: "red", marginBottom: "10px" }}>
+              {error}
+            </p>
+          )}
 
           <div style={field}>
             <label>Title</label>
@@ -62,42 +93,36 @@ function CreateTaskModal({ columnId, onClose, onAddTask }) {
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
+            
+         <div style={field}>
+  <label>Start Date</label>
+  <input
+    type="datetime-local"
+    value={startDate}
+    onChange={(e) => setStartDate(e.target.value)}
+  />
+</div>
 
-          <div style={field}>
-            <label>Assignee</label>
-            <select
-              value={assignee}
-              onChange={(e) => setAssignee(e.target.value)}
-            >
-              <option value="">Unassigned</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={field}>
-            <label>Due Date</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-            />
-          </div>
+<div style={field}>
+  <label>Due Date</label>
+  <input
+    type="datetime-local"
+    value={dueDate}
+    onChange={(e) => setDueDate(e.target.value)}
+  />
+</div>
 
           <div style={buttons}>
-            <button type="submit">Create</button>
+            <button type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Create"}
+            </button>
             <button type="button" onClick={onClose}>
               Cancel
             </button>
           </div>
 
         </form>
-
       </div>
-
     </div>
   );
 }

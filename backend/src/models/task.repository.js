@@ -22,36 +22,36 @@ const TaskRepository = {
     // search
     if (search) {
       values.push(`%${search}%`);
-      where.push(`title ILIKE $${values.length}`);
+      where.push(`t.title ILIKE $${values.length}`);
     }
 
     // filter column
     if (column_id) {
       values.push(column_id);
-      where.push(`column_id = $${values.length}`);
+      where.push(`t.column_id = $${values.length}`);
     }
 
     // filter assignee
     if (assignee_id) {
       values.push(assignee_id);
-      where.push(`assignee_id = $${values.length}`);
+      where.push(`t.assignee_id = $${values.length}`);
     }
 
     // filter start_date
     if (start_date) {
       values.push(start_date);
-      where.push(`start_date >= $${values.length}`);
+      where.push(`t.start_date >= $${values.length}`);
     }
 
     // filter due_date
     if (due_date) {
       values.push(due_date);
-      where.push(`due_date <= $${values.length}`);
+      where.push(`t.due_date <= $${values.length}`);
     }
 
     const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-    // ⚠️ validate sort để tránh SQL injection
+    // safe sort
     const allowedSortFields = [
       'created_at',
       'updated_at',
@@ -61,48 +61,175 @@ const TaskRepository = {
     ];
 
     const safeSortBy = allowedSortFields.includes(sort_by)
-      ? sort_by
-      : 'created_at';
+      ? `t.${sort_by}`
+      : 't.created_at';
 
     const safeOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
 
+    // 👉 MAIN QUERY
     const dataQuery = `
-          SELECT * FROM tasks
-          ${whereClause}
-          ORDER BY ${safeSortBy} ${safeOrder}
-          LIMIT $${values.length + 1}
-          OFFSET $${values.length + 2}
-        `;
+    SELECT 
+      t.id,
+      t.title,
+      t.description,
+      t.start_date,
+      t.due_date,
+
+      -- assignee
+      u.id AS assignee_id,
+      u.name AS assignee_name,
+      u.email AS assignee_email,
+
+      -- labels
+      COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'id', l.id,
+            'name', l.name
+          )
+        ) FILTER (WHERE l.id IS NOT NULL),
+        '[]'
+      ) AS labels,
+
+      -- attachments
+      COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'id', a.id,
+            'file_url', a.file_url
+          )
+        ) FILTER (WHERE a.id IS NOT NULL),
+        '[]'
+      ) AS attachments
+
+    FROM tasks t
+    LEFT JOIN users u ON t.assignee_id = u.id
+    LEFT JOIN task_labels tl ON tl.task_id = t.id
+    LEFT JOIN labels l ON l.id = tl.label_id
+    LEFT JOIN attachments a ON a.task_id = t.id
+
+    ${whereClause}
+
+    GROUP BY t.id, u.id
+
+    ORDER BY ${safeSortBy} ${safeOrder}
+
+    LIMIT $${values.length + 1}
+    OFFSET $${values.length + 2}
+  `;
 
     values.push(limit, offset);
 
     const dataResult = await db.query(dataQuery, values);
 
+    // 👉 COUNT QUERY (KHÔNG JOIN để tối ưu)
     const countQuery = `
-          SELECT COUNT(*) FROM tasks
-          ${whereClause}
-        `;
+    SELECT COUNT(*) FROM tasks t
+    ${whereClause}
+  `;
 
     const countResult = await db.query(
       countQuery,
       values.slice(0, values.length - 2)
     );
 
+    // 👉 FORMAT DATA
+    const formattedData = dataResult.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      start_date: row.start_date,
+      due_date: row.due_date,
+
+      assignee: row.assignee_id
+        ? {
+          id: row.assignee_id,
+          name: row.assignee_name,
+          email: row.assignee_email
+        }
+        : null,
+
+      labels: row.labels || [],
+      attachments: row.attachments || []
+    }));
+
     return {
-      data: dataResult.rows,
+      data: formattedData,
       total: parseInt(countResult.rows[0].count)
     };
   },
 
   async findById(id) {
     const result = await db.query(
-      'SELECT * FROM tasks WHERE id = $1',
+      `
+    SELECT 
+      t.id,
+      t.title,
+      t.description,
+      t.start_date,
+      t.due_date,
+
+      -- assignee
+      u.id AS assignee_id,
+      u.name AS assignee_name,
+      u.email AS assignee_email,
+
+      -- labels (array json)
+      COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'id', l.id,
+            'name', l.name
+          )
+        ) FILTER (WHERE l.id IS NOT NULL),
+        '[]'
+      ) AS labels,
+
+      -- attachments (array json)
+      COALESCE(
+        json_agg(
+          DISTINCT jsonb_build_object(
+            'id', a.id,
+            'file_url', a.file_url
+          )
+        ) FILTER (WHERE a.id IS NOT NULL),
+        '[]'
+      ) AS attachments
+
+    FROM tasks t
+    LEFT JOIN users u ON t.assignee_id = u.id
+    LEFT JOIN task_labels tl ON tl.task_id = t.id
+    LEFT JOIN labels l ON l.id = tl.label_id
+    LEFT JOIN attachments a ON a.task_id = t.id
+
+    WHERE t.id = $1
+    GROUP BY t.id, u.id
+    `,
       [id]
     );
 
-    return result.rows[0] || null;
-  },
+    const row = result.rows[0];
+    if (!row) return null;
 
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      start_date: row.start_date,
+      due_date: row.due_date,
+
+      assignee: row.assignee_id
+        ? {
+          id: row.assignee_id,
+          name: row.assignee_name,
+          email: row.assignee_email
+        }
+        : null,
+
+      labels: row.labels || [],
+      attachments: row.attachments || []
+    };
+  },
   async create(data) {
     const {
       column_id,
