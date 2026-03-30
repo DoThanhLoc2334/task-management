@@ -34,5 +34,48 @@ router.get(
     authMiddleware,
     TaskController.delete
   );
+  router.put(
+    '/:id/reorder',
+    authMiddleware,
+    TaskController.reorder
+  );
+
+  router.get(
+    '/',
+    authMiddleware,
+    TaskController.getAll
+  );
+
+  router.get(
+    '/:id',
+    authMiddleware,
+    TaskController.getById
+  );
+
+  router.post(
+    '/',
+    authMiddleware,
+    TaskController.create
+  );
+
+  router.put(
+    '/:id', 
+    authMiddleware,
+    TaskController.update
+  );
+
+  router.delete(
+    '/:id',
+    authMiddleware,
+    TaskController.delete
+  );
+
+  // 🔥 ADD CÁI NÀY
+  router.put(
+    '/:id/reorder',
+    authMiddleware,
+    TaskController.reorder
+  );
+
 
 export default router;

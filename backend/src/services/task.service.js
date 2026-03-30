@@ -26,9 +26,9 @@ const TaskService = {
   },
 
   async createTask(data) {
-    const { column_id, assignee_id, created_by } = data;
+    const { column_id, created_by } = data;
   
-    if (!column_id || !assignee_id || !created_by) {
+    if (!column_id  || !created_by) {
       throw new Error('MISSING_REQUIRED_FIELDS');
     }
   
@@ -48,20 +48,8 @@ const TaskService = {
     }
   
     const workspace_id = columnResult.rows[0].workspace_id;
-  
-    // 🔥 2. check assignee thuộc workspace
-    const assigneeCheck = await db.query(
-      `
-      SELECT * FROM workspace_members
-      WHERE workspace_id = $1 AND user_id = $2
-      `,
-      [workspace_id, assignee_id]
-    );
-  
-    if (!assigneeCheck.rows.length) {
-      throw new Error('ASSIGNEE_NOT_IN_WORKSPACE');
-    }
-  
+    
+
     // 🔥 3. check created_by thuộc workspace
     const creatorCheck = await db.query(
       `
@@ -175,6 +163,54 @@ const TaskService = {
     );
   
     return result.rows;
+  },
+  async reorderTask(taskId, beforeId, afterId) {
+    const task = await TaskRepository.findById(taskId);
+    if (!task) throw new Error("Task not found");
+
+    const beforeTask = beforeId
+      ? await TaskRepository.findById(beforeId)
+      : null;
+
+    const afterTask = afterId
+      ? await TaskRepository.findById(afterId)
+      : null;
+
+    let newPosition;
+
+    if (!beforeTask && afterTask) {
+      newPosition = afterTask.position - 1;
+    } 
+    else if (beforeTask && !afterTask) {
+      newPosition = beforeTask.position + 1;
+    } 
+    else if (beforeTask && afterTask) {
+      newPosition = (beforeTask.position + afterTask.position) / 2;
+    } 
+    else {
+      throw new Error("Invalid reorder input");
+    }
+
+    // 🔥 CHECK có cần reindex không
+    const NEED_REINDEX_THRESHOLD = 0.00001;
+
+    if (
+      beforeTask &&
+      afterTask &&
+      Math.abs(beforeTask.position - afterTask.position) < NEED_REINDEX_THRESHOLD
+    ) {
+      console.log("⚠️ Reindex triggered");
+
+      await TaskRepository.reindex(task.column_id);
+
+      // 🔥 lấy lại position sau khi reindex
+      const newBefore = await TaskRepository.findById(beforeId);
+      const newAfter = await TaskRepository.findById(afterId);
+
+      newPosition = (newBefore.position + newAfter.position) / 2;
+    }
+
+    return await TaskRepository.updatePosition(taskId, newPosition);
   }
 };
 

@@ -67,6 +67,7 @@ const WorkspaceRepository = {
 
     return result.rows; 
   }
+  
 };
 
 export default WorkspaceRepository;

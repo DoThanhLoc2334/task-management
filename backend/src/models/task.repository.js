@@ -108,19 +108,28 @@ const TaskRepository = {
       column_id,
       title,
       description,
-      assignee_id,
+     
       created_by,
       start_date,
-      due_date,
-      position = 0
+      due_date
     } = data;
+
+    // 🔥 lấy position tiếp theo
+    const posResult = await db.query(
+      `SELECT COALESCE(MAX(position), -1) + 1 AS new_position
+      FROM tasks
+      WHERE column_id = $1`,
+      [column_id]
+    );
+
+    const position = posResult.rows[0].new_position;
 
     const result = await db.query(
       `INSERT INTO tasks 
-      (column_id, title, description, assignee_id, created_by, start_date, due_date, position)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      (column_id, title, description,  created_by, start_date, due_date, position)
+      VALUES ($1,$2,$3,$4,$5,$6,$7)
       RETURNING *`,
-      [column_id, title, description, assignee_id, created_by, start_date, due_date, position]
+      [column_id, title, description, created_by, start_date, due_date, position]
     );
 
     return result.rows[0];
@@ -158,7 +167,55 @@ const TaskRepository = {
   async delete(id) {
     await db.query('DELETE FROM tasks WHERE id = $1', [id]);
     return true;
+  },
+  async updatePosition(taskId, position) {
+    const result = await db.query(
+      `
+      UPDATE tasks
+      SET position = $1,
+          updated_at = NOW()
+      WHERE id = $2
+      RETURNING *
+      `,
+      [position, taskId]
+    );
+
+    return result.rows[0];
+  },
+  // async reindex(columnId) {
+  //   await db.query(
+  //     `
+  //     UPDATE tasks
+  //     SET position = sub.new_pos
+  //     FROM (
+  //       SELECT id,
+  //             ROW_NUMBER() OVER (ORDER BY position, created_at) AS new_pos
+  //       FROM tasks
+  //       WHERE column_id = $1
+  //     ) sub
+  //     WHERE tasks.id = sub.id
+  //     AND tasks.column_id = $1;
+  //     `,
+  //     [columnId]
+  //   );
+  // }
+  async reindex(columnId) {
+    await db.query(
+      `
+      UPDATE tasks
+      SET position = sub.new_pos
+      FROM (
+        SELECT id,
+              ROW_NUMBER() OVER (ORDER BY position, created_at) * 1000 AS new_pos
+        FROM tasks
+        WHERE column_id = $1
+      ) sub
+      WHERE tasks.id = sub.id
+      AND tasks.column_id = $1;
+      `,
+      [columnId]
+    );
   }
 };
 
-export default TaskRepository;
+export default TaskRepository;  

@@ -36,10 +36,7 @@ const TaskController = {
         return errorResponse(res, 'Column not found', 404);
       }
       
-      if (err.message === 'ASSIGNEE_NOT_IN_WORKSPACE') {
-        return errorResponse(res, 'Assignee not in workspace', 400);
-      }
-      
+
       if (err.message === 'CREATOR_NOT_IN_WORKSPACE') {
         return errorResponse(res, 'Creator not in workspace', 400);
       }
@@ -75,7 +72,23 @@ const TaskController = {
       }
       return errorResponse(res, err.message);
     }
+  },
+  async reorder(req, res, next) {
+  try {
+    const taskId = req.params.id;
+    const { before_id, after_id } = req.body;
+
+    const data = await TaskService.reorderTask(
+      taskId,
+      before_id,
+      after_id
+    );
+
+    return successResponse(res, data, "Reordered");
+  } catch (err) {
+    next(err);
   }
+}
 };
 
 export default TaskController;
