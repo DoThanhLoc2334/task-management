@@ -129,7 +129,7 @@ const WorkspaceService = {
     }
 
     //  validate role hợp lệ
-    const validRoles = ['OWNER', 'MODERATOR', 'MEMBER','GUEST'];
+    const validRoles = ['OWNER', 'MODERATOR', 'MEMBER', 'GUEST'];
 
     if (!validRoles.includes(newRole)) {
       throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Invalid role');
@@ -193,39 +193,61 @@ const WorkspaceService = {
     return result.rows[0];
   },
 
-  async removeMember(workspaceId, targetUserId, currentUserId) {
-
-    if (!workspaceId || !targetUserId) {
+  async leaveWorkspace(workspaceId, userId) {
+    if (!workspaceId || !userId) {
       throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Missing required fields');
     }
 
-    // check workspace tồn tại
+    // Kiểm tra workspace tồn tại
     const workspace = await WorkspaceRepository.findById(workspaceId);
     if (!workspace) {
       throw new AppError(ERROR_CODES.WORKSPACE_NOT_FOUND, 404);
     }
 
-    // check current user
+    // Kiểm tra user có trong workspace không
+    const membership = await db.query(
+      `SELECT role FROM workspace_members WHERE workspace_id = $1 AND user_id = $2`,
+      [workspaceId, userId]
+    );
+
+    if (!membership.rows.length) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'You are not a member of this workspace');
+    }
+
+    // Không cho Owner leave nếu là Owner cuối cùng (tùy bạn có muốn check không)
+    // Nếu muốn nghiêm ngặt: kiểm tra còn Owner nào khác không...
+
+    await db.query(
+      `DELETE FROM workspace_members WHERE workspace_id = $1 AND user_id = $2`,
+      [workspaceId, userId]
+    );
+
+    return { message: 'Left workspace successfully' };
+  },
+
+  async removeMember(workspaceId, targetUserId, currentUserId) {
+    if (!workspaceId || !targetUserId) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Missing required fields');
+    }
+
+    const workspace = await WorkspaceRepository.findById(workspaceId);
+    if (!workspace) {
+      throw new AppError(ERROR_CODES.WORKSPACE_NOT_FOUND, 404);
+    }
+
+    // Kiểm tra currentUser phải là OWNER
     const currentUser = await db.query(
-      `
-    SELECT role
-    FROM workspace_members
-    WHERE workspace_id = $1 AND user_id = $2
-    `,
+      `SELECT role FROM workspace_members WHERE workspace_id = $1 AND user_id = $2`,
       [workspaceId, currentUserId]
     );
 
-    if (!currentUser.rows.length) {
-      throw new AppError(ERROR_CODES.FORBIDDEN, 403);
+    if (!currentUser.rows.length || currentUser.rows[0].role !== 'OWNER') {
+      throw new AppError(ERROR_CODES.FORBIDDEN, 403, 'Only Owner can remove members');
     }
 
-    // check target user
+    // Kiểm tra target user tồn tại
     const targetUser = await db.query(
-      `
-    SELECT role
-    FROM workspace_members
-    WHERE workspace_id = $1 AND user_id = $2
-    `,
+      `SELECT role FROM workspace_members WHERE workspace_id = $1 AND user_id = $2`,
       [workspaceId, targetUserId]
     );
 
@@ -233,37 +255,17 @@ const WorkspaceService = {
       throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Member not found');
     }
 
-    const currentRole = currentUser.rows[0].role;
-    const targetRole = targetUser.rows[0].role;
-
-    // không cho xoá OWNER
-    if (targetRole === 'OWNER') {
+    if (targetUser.rows[0].role === 'OWNER') {
       throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Cannot remove OWNER');
     }
 
-    // CASE 1: user tự rời workspace
+    // Không cho Owner tự remove chính mình qua hàm này
     if (currentUserId === targetUserId) {
-      await db.query(
-        `
-      DELETE FROM workspace_members
-      WHERE workspace_id = $1 AND user_id = $2
-      `,
-        [workspaceId, targetUserId]
-      );
-
-      return { message: 'Left workspace successfully' };
-    }
-
-    // CASE 2: OWNER xoá member
-    if (currentRole !== 'OWNER') {
-      throw new AppError(ERROR_CODES.FORBIDDEN, 403);
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Owner cannot remove themselves using remove member. Please use Leave Workspace instead.');
     }
 
     await db.query(
-      `
-    DELETE FROM workspace_members
-    WHERE workspace_id = $1 AND user_id = $2
-    `,
+      `DELETE FROM workspace_members WHERE workspace_id = $1 AND user_id = $2`,
       [workspaceId, targetUserId]
     );
 

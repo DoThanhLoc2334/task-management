@@ -16,14 +16,19 @@ export const createWorkspace = async (data) => {
   return res.data;
 };
 
-
 export const addMemberToWorkspace = (workspaceId, data) => {
   return instance.post(`/workspaces/${workspaceId}/members`, data);
+};
+
+export const changeMemberRole = (workspaceId, userId, role) => {
+  return instance.patch(`/workspaces/${workspaceId}/members/${userId}`, { role });
 };
 
 export const removeMemberFromWorkspace = (workspaceId, userId) => {
   return instance.delete(`/workspaces/${workspaceId}/members/${userId}`);
 };
-export const changeMemberRole = (workspaceId, userId, role) => {
-  return instance.patch(`/workspaces/${workspaceId}/members/${userId}`, { role });
+export const leaveWorkspace = async (workspaceId) => {
+  const res = await instance.delete(`/workspaces/${workspaceId}/members/me`);
+  return res.data;
 };
+

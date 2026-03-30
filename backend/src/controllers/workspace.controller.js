@@ -95,7 +95,22 @@ const WorkspaceController = {
     } catch (err) {
       next(err);
     }
+  },
+  
+  async leaveWorkspace(req, res, next) {
+  try {
+    const workspaceId = req.params.id;
+
+    const data = await WorkspaceService.leaveWorkspace(
+      workspaceId,
+      req.user.id
+    );
+
+    return successResponse(res, data, data.message);
+  } catch (err) {
+    next(err);
   }
+}
 
 };
 
