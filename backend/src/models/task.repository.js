@@ -342,7 +342,8 @@ const TaskRepository = {
       `,
       [columnId]
     );
-  }
+  },
+
 };
 
 export default TaskRepository;  

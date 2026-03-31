@@ -211,7 +211,8 @@ const TaskService = {
     }
 
     return await TaskRepository.updatePosition(taskId, newPosition);
-  }
+  },
+
 };
 
 export default TaskService;

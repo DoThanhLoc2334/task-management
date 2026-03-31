@@ -10,7 +10,7 @@ import ProjectBoard from "./pages/Project/Projectboard.jsx";
 import TaskDetail from "./pages/Task/Taskdetailpage.jsx";
 import WorkspaceActivity from "./pages/Workspace/WorkspaceActivity.jsx";
 import AppLayout from "./layouts/AppLayout.jsx";
-
+import UserProfile from "./pages/System/User profile.jsx";
 function App() {
   const [refreshFlag, setRefreshFlag] = useState(0);
 
@@ -33,6 +33,7 @@ function App() {
           <Route path="/projects/:id" element={<ProjectBoard />} />
           <Route path="/tasks/:taskId" element={<TaskDetail />} />
           <Route path="/workspace/:id/activity" element={<WorkspaceActivity />} />
+          <Route path="/profile" element={<UserProfile />} />
         </Route>
       </Routes>
 

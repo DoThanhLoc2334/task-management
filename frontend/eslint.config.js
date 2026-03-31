@@ -27,3 +27,8 @@ export default defineConfig([
     },
   },
 ])
+
+module.exports = {
+  extends: [],
+  rules: {}
+};

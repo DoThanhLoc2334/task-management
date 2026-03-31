@@ -1,5 +1,3 @@
-
-
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
@@ -9,14 +7,18 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Avatar from "@mui/material/Avatar";
 import InputAdornment from "@mui/material/InputAdornment";
-import SearchIcon from '@mui/icons-material/Search';
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Divider from "@mui/material/Divider";
+
+import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
 import { createWorkspace } from "../../services/workspace.js";
-import { parseToken } from  "../../Utils/parseToken.js"; 
+import { parseToken } from "../../Utils/parseToken.js";
 
 import CreateWorkspaceModal from "../../modals/Creation/CreateWorkspaceModal";
 import CreateColumnModal from "../../modals/Creation/CreateColumnModal";
@@ -24,8 +26,14 @@ import CreateProjectModal from "../../modals/Creation/CreateProjectModal";
 
 function Topbar({ onWorkspaceCreated }) {
   const location = useLocation();
+  const navigate = useNavigate();
+
   const [openModal, setOpenModal] = useState(false);
   const [user, setUser] = useState(null);
+
+  // menu avatar
+  const [anchorEl, setAnchorEl] = useState(null);
+  const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -67,20 +75,50 @@ function Topbar({ onWorkspaceCreated }) {
     return null;
   };
 
+  // ===== Avatar menu =====
+  const handleAvatarClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    handleCloseMenu();
+    navigate("/");
+  };
+
+
   return (
     <>
       <AppBar
         position="static"
         elevation={0}
-        sx={{ background: "white", color: "black", borderBottom: "1px solid #e5e7eb" }}
+        sx={{
+          background: "white",
+          color: "black",
+          borderBottom: "1px solid #e5e7eb",
+        }}
       >
         <Toolbar sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-          {/* LEFT: Logo */}
-          <Typography variant="h6" sx={{ fontWeight: 700, color: "#4669fa" }}>
-            LAP-TLJ
-          </Typography>
+          {/* LEFT */}
+          <Box
+            onClick={() => navigate("/workspaceswitcher")}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              cursor: "pointer",
+            }}
+          >
+            <Typography fontWeight={700} color="#4669fa">
+              LAP-TLJ
+            </Typography>
+          </Box>
 
-          {/* CENTER: Search */}
+          {/* CENTER */}
           <Box sx={{ flex: 1, maxWidth: 500 }}>
             <TextField
               size="small"
@@ -90,7 +128,10 @@ function Topbar({ onWorkspaceCreated }) {
                 borderRadius: "25px",
                 backgroundColor: "#f1f3ff",
                 "& .MuiOutlinedInput-notchedOutline": { border: 0 },
-                "& .MuiOutlinedInput-root": { borderRadius: "25px", bgcolor: "#f1f3ff" }
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "25px",
+                  bgcolor: "#f1f3ff",
+                },
               }}
               InputProps={{
                 startAdornment: (
@@ -102,7 +143,7 @@ function Topbar({ onWorkspaceCreated }) {
             />
           </Box>
 
-          {/* RIGHT: Buttons */}
+          {/* RIGHT */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button
               variant="contained"
@@ -112,7 +153,7 @@ function Topbar({ onWorkspaceCreated }) {
                 fontWeight: 600,
                 bgcolor: "#4669fa",
                 "&:hover": { bgcolor: "#3651d4" },
-                borderRadius: "20px"
+                borderRadius: "20px",
               }}
             >
               {getCreateLabel()}
@@ -122,9 +163,65 @@ function Topbar({ onWorkspaceCreated }) {
               <NotificationsIcon />
             </IconButton>
 
-            <Avatar sx={{ bgcolor: "#4669fa", fontWeight: 700 }}>
+            {/* AVATAR */}
+            <Avatar
+              sx={{
+                bgcolor: "#4669fa",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+              onClick={handleAvatarClick}
+            >
               {user ? user.username?.[0]?.toUpperCase() : "L"}
             </Avatar>
+
+            {/* DROPDOWN MENU */}
+            <Menu
+              anchorEl={anchorEl}
+              open={openMenu}
+              onClose={handleCloseMenu}
+              PaperProps={{
+                sx: {
+                  mt: 1.5,
+                  minWidth: 230,
+                  borderRadius: 3,
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+                  p: 1,
+                },
+              }}
+            >
+              {/* User info */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, p: 1 }}>
+                <Avatar sx={{ bgcolor: "#4669fa" }}>
+                  {user ? user.username?.[0]?.toUpperCase() : "L"}
+                </Avatar>
+                <Box>
+                  <Typography fontWeight={600} fontSize={14}>
+                    {user?.username || "User"}
+                  </Typography>
+                  <Typography fontSize={12} color="gray">
+                    {user?.email || "No email"}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Divider sx={{ my: 1 }} />
+
+              <MenuItem onClick={() => navigate("/profile")}>
+                Profile
+              </MenuItem>
+
+              <MenuItem onClick={() => navigate("/settings")}>
+                Settings
+              </MenuItem>
+
+              <MenuItem
+                onClick={handleLogout}
+                sx={{ color: "red", fontWeight: 500 }}
+              >
+                Logout
+              </MenuItem>
+            </Menu>
           </Box>
         </Toolbar>
       </AppBar>

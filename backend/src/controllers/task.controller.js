@@ -75,21 +75,21 @@ const TaskController = {
     }
   },
   async reorder(req, res, next) {
-  try {
-    const taskId = req.params.id;
-    const { before_id, after_id } = req.body;
+    try {
+      const taskId = req.params.id;
+      const { before_id, after_id } = req.body;
 
-    const data = await TaskService.reorderTask(
-      taskId,
-      before_id,
-      after_id
-    );
+      const data = await TaskService.reorderTask(
+        taskId,
+        before_id,
+        after_id
+      );
 
-    return successResponse(res, data, "Reordered");
-  } catch (err) {
-    next(err);
+      return successResponse(res, data, "Reordered");
+    } catch (err) {
+      next(err);
+    }
   }
-}
 };
 
 export default TaskController;

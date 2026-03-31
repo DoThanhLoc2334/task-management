@@ -70,7 +70,7 @@ router.get(
     TaskController.delete
   );
 
-  // 🔥 ADD CÁI NÀY
+
   router.put(
     '/:id/reorder',
     authMiddleware,
