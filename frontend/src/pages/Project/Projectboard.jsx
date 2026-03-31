@@ -252,7 +252,7 @@ const ProjectBoard = () => {
           {/* Nút thêm column */}
           <AddColumnButton onClick={() => setOpenCreateColumn(true)} />
         </div>
-      </div>
+      </DndContext>
 
       {/* MODALS */}
       <CreateColumnModal

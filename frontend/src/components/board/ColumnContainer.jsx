@@ -218,15 +218,15 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
       alert("Delete task failed: " + (err.response?.data?.message || err.message));
     }
   };
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorPosition, setAnchorPosition] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const handleMenuOpen = (event, task) => {
-    setAnchorEl(event.currentTarget);
+    setAnchorPosition({ top: event.clientY, left: event.clientX });
     setSelectedTask(task);
   };
 
   const handleMenuClose = () => {
-    setAnchorEl(null);
+    setAnchorPosition(null);
     setSelectedTask(null);
   };
   return (
@@ -276,9 +276,12 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
         )}
       </Box>
         <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
+          anchorReference="anchorPosition"
+          anchorPosition={anchorPosition}
+          open={Boolean(anchorPosition)}
           onClose={handleMenuClose}
+          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         >
           <MenuItem
             onClick={() => {
