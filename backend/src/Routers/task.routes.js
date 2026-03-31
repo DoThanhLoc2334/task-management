@@ -18,6 +18,12 @@ router.patch(
   TaskController.updateStatus
 );
 
+router.patch(
+  '/:id/assign',
+  authMiddleware,
+  TaskController.assignTask
+);
+
 //  route chung
 router.get(
   '/',
