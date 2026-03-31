@@ -41,3 +41,11 @@ export const moveTaskToColumn = (taskId, targetColumnId, position) => {
     position: position
   });
 };
+
+// 📌 Reorder task inside column by before/after task IDs
+export const reorderTask = (taskId, beforeId, afterId) => {
+  return instance.put(`/tasks/${taskId}/reorder`, {
+    before_id: beforeId,
+    after_id: afterId
+  });
+};

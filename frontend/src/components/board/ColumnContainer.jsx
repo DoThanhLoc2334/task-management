@@ -1,16 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, Paper, Button, CircularProgress, Stack } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CreateTaskModal from "../../modals/Creation/CreateTaskModal";
 import EditTaskModal from "../../modals/Editing/EditTaskModal.jsx";
-import { deleteTask } from "../../services/task.service.js";
+import { deleteTask, reorderTask } from "../../services/task.service.js";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditStatusTaskModal from "../../modals/Editing/EditStatusTaskModal.jsx";
 import EditAssigneeModal from "../../modals/Editing/EditAssigneeModal.jsx";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCenter
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  arrayMove,
+  verticalListSortingStrategy
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false, onAddTask }) => {
+  const [localTasks, setLocalTasks] = useState(tasks);
   const [openCreateTask, setOpenCreateTask] = useState(false);
   const [openEditTask, setOpenEditTask] = useState(false);
   const [editTaskData, setEditTaskData] = useState(null);
@@ -19,6 +34,146 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
   const [editStatusData, setEditStatusData] = useState(null);
   const [openEditAssignee, setOpenEditAssignee] = useState(false);
   const [editAssigneeData, setEditAssigneeData] = useState(null);
+
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5
+      }
+    })
+  );
+
+  const handleDragEnd = async ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = localTasks.findIndex((task) => task.id === active.id);
+    const newIndex = localTasks.findIndex((task) => task.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const updatedTasks = arrayMove(localTasks, oldIndex, newIndex);
+    setLocalTasks(updatedTasks);
+
+    const movedIndex = updatedTasks.findIndex((task) => task.id === active.id);
+    const beforeId = updatedTasks[movedIndex - 1]?.id || null;
+    const afterId = updatedTasks[movedIndex + 1]?.id || null;
+
+    try {
+      await reorderTask(active.id, beforeId, afterId);
+      await onAddTask();
+    } catch (err) {
+      console.error("Reorder failed:", err);
+      setLocalTasks(tasks);
+    }
+  };
+
+  function SortableTaskRow({ task }) {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition
+    } = useSortable({ id: task.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition
+    };
+
+    return (
+      <Paper
+        ref={setNodeRef}
+        style={style}
+        sx={{
+          p: 1.5,
+          borderRadius: 2,
+          position: "relative",
+          transition: "0.2s",
+          opacity: task.status === "done" ? 0.5 : 1,
+          "&:hover": {
+            backgroundColor: "#e4e6ea",
+            transform: "translateY(-2px)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+          }
+        }}
+      >
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box
+            {...attributes}
+            {...listeners}
+            sx={{
+              cursor: "grab",
+              color: "#888",
+              mr: 1,
+              fontSize: 14
+            }}
+          >
+            ⋮⋮
+          </Box>
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleMenuOpen(e, task);
+            }}
+          >
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
+        </Box>
+
+        <Typography
+          fontSize={14}
+          fontWeight={600}
+          sx={{
+            textDecoration: task.status === "done" ? "line-through" : "none"
+          }}
+        >
+          {task.title}
+        </Typography>
+
+        {task.description && (
+          <Typography fontSize={12} color="gray">
+            {task.description}
+          </Typography>
+        )}
+
+        {task.due_date && (
+          <Typography fontSize={11} color="red">
+            Due: {new Date(task.due_date).toLocaleDateString("en-GB")}
+          </Typography>
+        )}
+
+        {task.assignee ? (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+            <Box
+              sx={{
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                backgroundColor: "#1976d2",
+                color: "white",
+                fontSize: 11,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
+            >
+              {task.assignee.name.charAt(0).toUpperCase()}
+            </Box>
+            <Typography fontSize={11}>{task.assignee.name}</Typography>
+          </Box>
+        ) : (
+          <Typography fontSize={11} color="gray" mt={0.5}>
+            👤 Unassigned
+          </Typography>
+        )}
+      </Paper>
+    );
+  }
 
   const handleEditAssignee = (task) => {
     setEditAssigneeData(task);
@@ -82,101 +237,42 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
       </Typography>
 
       {/* TASK LIST */}
-      <Box sx={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 1 }}>
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          '&::-webkit-scrollbar': {
+            width: 0,
+            height: 0
+          },
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
+      >
         {loadingTasks ? (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <CircularProgress size={24} />
           </Box>
-        ) : tasks.length === 0 ? (
+        ) : localTasks.length === 0 ? (
           <Typography fontSize={12} color="gray">No tasks</Typography>
         ) : (
-          tasks.map((task) => (
-                <Paper
-                  key={task.id}
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 2,
-                    position: "relative",
-                    transition: "0.2s",
-
-                  
-                    opacity: task.status === "done" ? 0.5 : 1,
-                    
-                    "&:hover": {
-                      backgroundColor: "#e4e6ea",
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-                    }
-                  }}
-                >
-                                
-                <IconButton
-                  size="small"
-                  onClick={(e) => handleMenuOpen(e, task)}
-                  sx={{
-                    position: "absolute",
-                    top: 5,
-                    right: 5
-                  }}
-                >
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-
-                {/* CONTENT */}
-                <Typography
-                  fontSize={14}
-                  fontWeight={600}
-                  sx={{
-                    textDecoration: task.status === "done" ? "line-through" : "none"
-                  }}
-                >
-                  {task.title}
-                </Typography>
-                <Box
-                  sx={{
-                    mt: 0.5,
-                    display: "inline-block",
-                    px: 1,
-                    py: "2px",
-                    borderRadius: 1,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "white",
-
-             
-                    backgroundColor:
-                      task.status === "todo"
-                        ? "#777777"
-                        : task.status === "in_progress"
-                        ? "#ff9800"
-                        : "#4caf50"
-                  }}
-                >
-                  {task.status === "todo"
-                    ? "To Do"
-                    : task.status === "in_progress"
-                    ? "In Progress"
-                    : "Done"}
-                </Box>
-            
-
-                {task.description && (
-                  <Typography fontSize={12} color="gray">
-                    {task.description}
-                  </Typography>
-                )}
-
-                {task.due_date && (
-                  <Typography fontSize={11} color="red">
-                    Due: {new Date(task.due_date).toLocaleDateString("en-GB")}
-                  </Typography>
-                )}
-              </Paper>
-            ))
-             
-              
-
-          
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={localTasks.map((task) => task.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {localTasks.map((task) => (
+                <SortableTaskRow key={task.id} task={task} />
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </Box>
         <Menu
