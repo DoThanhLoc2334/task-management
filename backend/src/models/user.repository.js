@@ -24,6 +24,13 @@ const UserRepository = {
       `SELECT id, email, name FROM users`
     );
     return result.rows;
+  },
+  async findById(id) {
+    const result = await db.query(
+      'SELECT id, email, name FROM users WHERE id = $1',
+      [id]
+    );
+    return result.rows[0];
   }
 };
 

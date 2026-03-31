@@ -87,6 +87,27 @@ const TaskController = {
     }
   },
 
+  async assignTask(req, res) {
+    try {
+      const { assignee_id } = req.body;
+
+      const result = await TaskService.assignTask(
+        req.params.id,
+        assignee_id
+      );
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
+  },
+
   async delete(req, res) {
     try {
       await TaskService.deleteTask(req.params.id, req.body.user_id);

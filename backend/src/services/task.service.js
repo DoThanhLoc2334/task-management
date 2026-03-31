@@ -1,5 +1,6 @@
 import TaskRepository from '../models/task.repository.js';
 import ActivityRepository from '../models/activity.repository.js';
+import UserRepository from '../models/user.repository.js';
 import db from '../config/db.js';
 
 const TaskService = {
@@ -173,6 +174,27 @@ const TaskService = {
     });
 
     return true;
+  },
+
+  async assignTask(taskId, assignee_id) {
+    const task = await TaskRepository.findById(taskId);
+    if (!task) throw new Error("TASK_NOT_FOUND");
+
+    //  normalize
+    const normalizedAssigneeId =
+      assignee_id && assignee_id !== '' ? assignee_id : null;
+
+    //   check user tồn tại
+    if (normalizedAssigneeId) {
+      const user = await UserRepository.findById(normalizedAssigneeId);
+      if (!user) throw new Error("USER_NOT_FOUND");
+    }
+
+    const updated = await TaskRepository.update(taskId, {
+      assignee_id: normalizedAssigneeId
+    });
+
+    return updated;
   },
 
   async checkDependencies(taskId) {
