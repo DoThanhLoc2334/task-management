@@ -23,8 +23,10 @@ export const updateTask = (id, data) => {
 };
 
 // 📌 Xóa task
-export const deleteTask = (id) => {
-  return instance.delete(`/tasks/${id}`);
+export const deleteTask = (taskId, userId) => {
+  return instance.delete(`/tasks/${taskId}`, {
+    data: { user_id: userId } // Axios cần 'data' khi DELETE gửi body
+  });
 };
 
 // 📌 Update position task (drag & drop)

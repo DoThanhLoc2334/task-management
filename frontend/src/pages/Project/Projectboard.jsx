@@ -1,151 +1,15 @@
-// import React, { useState, useEffect } from "react";
-// import { useParams } from "react-router-dom";
-
-// import ColumnContainer from "../../components/board/ColumnContainer";
-// import AddColumnButton from "../../components/board/AddColumnButton";
-// import CreateColumnModal from "../../modals/Creation/CreateColumnModal";
-
-// import { getTasksByProjectId } from "../../services/projectsServices.js";
-// import {
-//   getColumnsByProject,
-//   createColumn
-// } from "../../services/columnsService.js";
-
-// const ProjectBoard = () => {
-//   const { id: projectId } = useParams();
-
-//   const [columnList, setColumnList] = useState([]);
-//   const [taskList, setTaskList] = useState([]);
-
-//   const [loading, setLoading] = useState(true);
-//   const [creating, setCreating] = useState(false);
-//   const [error, setError] = useState(null);
-//   const [openCreateColumn, setOpenCreateColumn] = useState(false);
-
-//   // ================= FETCH COLUMNS =================
-//   const fetchColumns = async () => {
-//     try {
-//       setLoading(true);
-//       const res = await getColumnsByProject(projectId);
-//       const data = res.data?.data || [];
-//       setColumnList(data.filter((c) => c && c.id));
-//     } catch (err) {
-//       console.error(err);
-//       setError("Failed to load columns");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // ================= FETCH TASKS =================
-//   const fetchTasks = async () => {
-//     try {
-//       const res = await getTasksByProjectId(projectId);
-//       const data = res.data?.data || [];
-//       setTaskList(data); // ⚠️ dạng grouped
-//     } catch (err) {
-//       console.error("Fetch tasks error:", err);
-//     }
-//   };
-
-//   // ================= LOAD =================
-//   useEffect(() => {
-//     if (projectId) {
-//       fetchColumns();
-//       fetchTasks();
-//     }
-//   }, [projectId]);
-
-//   // ================= CREATE COLUMN =================
-//   const addColumn = async (name) => {
-//     try {
-//       setCreating(true);
-
-//       await createColumn({
-//         name,
-//         project_id: projectId
-//       });
-
-//       await fetchColumns();
-//     } catch (err) {
-//       console.error(err);
-//       alert("Create column failed");
-//     } finally {
-//       setCreating(false);
-//     }
-//   };
-
-//   // ================= MAP TASKS =================
-//   const taskMap = {};
-//   taskList.forEach((item) => {
-//     taskMap[item.column_id] = item.tasks;
-//   });
-
-//   // ================= UI =================
-//   if (loading) {
-//     return <div style={{ padding: 20 }}>Loading board...</div>;
-//   }
-
-//   if (error) {
-//     return <div style={{ padding: 20, color: "red" }}>{error}</div>;
-//   }
-
-//   return (
-//     <div style={boardWrapper}>
-//       <h2 style={{ marginBottom: 10 }}>
-//         {columnList.length ? "Project Board" : "No Columns Yet"}
-//       </h2>
-
-//       <div style={boardContainer}>
-//         {columnList.map((column) => (
-//           <ColumnContainer
-//             key={column.id}
-//             column={column}
-//             tasks={taskMap[column.id] || []} // ✅ chuẩn API
-//             onAddTask={fetchTasks}
-//           />
-//         ))}
-
-//         <AddColumnButton onClick={() => setOpenCreateColumn(true)} />
-//       </div>
-
-//       {/* MODAL */}
-//       <CreateColumnModal
-//         open={openCreateColumn}
-//         onClose={() => setOpenCreateColumn(false)}
-//         onCreate={addColumn}
-//         loading={creating}
-//       />
-//     </div>
-//   );
-// };
-
-// // ================= STYLE =================
-// const boardWrapper = {
-//   padding: "20px",
-//   backgroundColor: "#f9fafb",
-//   height: "100vh"
-// };
-
-// const boardContainer = {
-//   display: "flex",
-//   gap: "20px",
-//   alignItems: "flex-start",
-//   overflowX: "auto",
-//   paddingTop: "10px"
-// };
-
-// export default ProjectBoard;
-
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 import ColumnContainer from "../../components/board/ColumnContainer";
 import AddColumnButton from "../../components/board/AddColumnButton";
 import CreateColumnModal from "../../modals/Creation/CreateColumnModal";
-import EditColumnModal from "../../modals/Editing/EditTaskModal.jsx"; 
+import EditColumnModal from "../../modals/Editing/EditColumnModal.jsx"; 
 import { getTasksByProjectId } from "../../services/projectsServices.js";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
   getColumnsByProject,
   createColumn,
@@ -167,17 +31,33 @@ const ProjectBoard = () => {
   const [openEditColumn, setOpenEditColumn] = useState(false);
   const [editColumnData, setEditColumnData] = useState(null);
 
-  const handleEditTask = (task) => {
-  setEditTaskData(task);
-  setOpenEditTask(true);
+  const [openEditTask, setOpenEditTask] = useState(false);
+  const [editTaskData, setEditTaskData] = useState(null);
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedColumn, setSelectedColumn] = useState(null);
+
+  const handleMenuOpen = (event, column) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedColumn(column);
   };
 
-  // Hàm save xong refresh danh sách task
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedColumn(null);
+  };
+
+  const handleEditTask = (task) => {
+    setEditTaskData(task);
+    setOpenEditTask(true);
+  };
+
   const saveEditTask = async () => {
     await fetchTasks();
     setOpenEditTask(false);
     setEditTaskData(null);
   };
+
   // ================= FETCH COLUMNS =================
   const fetchColumns = async () => {
     try {
@@ -256,6 +136,11 @@ const ProjectBoard = () => {
     }
   };
 
+  const closeEditColumn = () => {
+    setOpenEditColumn(false);
+    setEditColumnData(null);
+  };
+
   // ================= MAP TASKS =================
   const taskMap = {};
   taskList.forEach((item) => {
@@ -267,28 +152,78 @@ const ProjectBoard = () => {
   if (error) return <div style={{ padding: 20, color: "red" }}>{error}</div>;
 
   return (
-    <div style={boardWrapper}>
-      <h2 style={{ marginBottom: 10 }}>
-        {columnList.length ? "Project Board" : "No Columns Yet"}
-      </h2>
+    <>
+      <div style={boardWrapper}>
+        <h2 style={{ marginBottom: 10 }}>
+          {columnList.length ? "Project Board" : "No Columns Yet"}
+        </h2>
 
-      <div style={boardContainer}>
-        {columnList.map((column) => (
-          <div key={column.id} style={{ position: "relative" }}>
-            {/* COLUMN CONTAINER */}
-            <ColumnContainer
-              column={column}
-              tasks={taskMap[column.id] || []}
-              onAddTask={fetchTasks}
-              onEditTask={handleEditTask}
-            />
+        <div style={boardContainer}>
+          {columnList.map((column) => (
+            <div key={column.id} style={{ position: "relative" }}>
+              <div style={columnButtons}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => handleMenuOpen(e, column)}
+                >
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
+              </div>
+              {/* COLUMN CONTAINER */}
+              <ColumnContainer
+                column={column}
+                tasks={taskMap[column.id] || []}
+                onAddTask={fetchTasks}
+                onEditTask={handleEditTask}
+              />
 
-            
-            
-          </div>
-        ))}
+              {/* BUTTON EDIT / DELETE COLUMN */}
+              {/* <div style={columnButtons}>
+                <button
+                  type="button"
+                  style={{ fontSize: "12px", padding: "4px 8px", marginRight: 5 }}
+                  onClick={() => handleEditColumn(column)}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  style={{ fontSize: "12px", padding: "4px 8px", backgroundColor: "red", color: "white" }}
+                  onClick={() => handleDeleteColumn(column.id)}
+                >
+                  Delete
+                </button>
+              </div> */}
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem
+                  onClick={() => {
+                    handleEditColumn(selectedColumn);
+                    handleMenuClose();
+                  }}
+                >
+                  Edit
+                </MenuItem>
 
-        <AddColumnButton onClick={() => setOpenCreateColumn(true)} />
+                <MenuItem
+                  onClick={() => {
+                    handleDeleteColumn(selectedColumn.id);
+                    handleMenuClose();
+                  }}
+                  sx={{ color: "red" }}
+                >
+                  Delete
+                </MenuItem>
+              </Menu>
+            </div>
+          ))}
+
+          {/* Nút thêm column */}
+          <AddColumnButton onClick={() => setOpenCreateColumn(true)} />
+        </div>
       </div>
 
       {/* MODALS */}
@@ -299,14 +234,15 @@ const ProjectBoard = () => {
         loading={creating}
       />
 
-      {openEditColumn && editColumnData && (
-        <EditColumnModal
-          column={editColumnData}
-          onClose={() => setOpenEditColumn(false)}
-          onSave={saveEditColumn}
-        />
-      )}
-    </div>
+      <EditColumnModal
+        open={openEditColumn}
+        column={editColumnData}
+        onClose={closeEditColumn}
+        onSave={saveEditColumn}
+      />
+
+
+    </>
   );
 };
 
