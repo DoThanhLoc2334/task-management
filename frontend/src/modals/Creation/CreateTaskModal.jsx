@@ -19,15 +19,13 @@ function CreateTaskModal({ columnId, onClose, onAddTask }) {
     try {
       setLoading(true);
       setError("");
-
       const payload = {
         column_id: columnId,
         title,
         description,
         created_by: user?.id,
-        start_date: new Date().toISOString().split("T")[0],
-        due_date: dueDate || null,
-        
+        start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
+        due_date: dueDate ? new Date(dueDate).toISOString() : null
       };
 
 

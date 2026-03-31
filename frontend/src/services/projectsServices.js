@@ -28,3 +28,7 @@ export const updateProject = (id, data) => {
 export const deleteProject = (id) => {
   return instance.delete(`/projects/${id}`);
 };
+
+export const getTasksByProjectId = (projectId) => {
+  return instance.get(`/projects/${projectId}/tasks`);
+}
