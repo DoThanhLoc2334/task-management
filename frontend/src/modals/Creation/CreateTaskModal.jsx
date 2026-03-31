@@ -1,51 +1,63 @@
+
 import React, { useState } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Stack,
+  Typography,
+  CircularProgress,
+  Paper
+} from "@mui/material";
+
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs from "dayjs";
+
 import { createTask } from "../../services/task.service";
 import { parseToken } from "../../Utils/parseToken";
 
 function CreateTaskModal({ columnId, onClose, onAddTask }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState(dayjs());
+  const [dueDate, setDueDate] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const token = localStorage.getItem("accessToken");
   const user = parseToken(token);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!title.trim()) return;
 
     try {
       setLoading(true);
       setError("");
+
       const payload = {
         column_id: columnId,
         title,
         description,
         created_by: user?.id,
-        start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
-        due_date: dueDate ? new Date(dueDate).toISOString() : null
+        start_date: startDate ? startDate.toISOString() : dayjs().toISOString(),
+        due_date: dueDate ? dueDate.toISOString() : null
       };
 
-
-      console.log("PAYLOAD:", payload);
       const res = await createTask(payload);
-
-      // 👉 data trả về từ backend
       const newTask = res.data;
 
-      // update UI
       onAddTask(newTask);
 
-      // reset form
       setTitle("");
       setDescription("");
-   
-      setDueDate("");
+      setStartDate(dayjs());
+      setDueDate(null);
 
       onClose();
-
     } catch (err) {
       console.error(err);
       setError("Failed to create task");
@@ -55,99 +67,74 @@ function CreateTaskModal({ columnId, onClose, onAddTask }) {
   };
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h2>Create Task</h2>
+    <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
+      <Paper elevation={3} sx={{ borderRadius: 2 }}>
+        <DialogTitle sx={{ fontWeight: 600, backgroundColor: "#f5f5f5" }}>
+          Create New Task
+        </DialogTitle>
 
-        <form onSubmit={handleSubmit}>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            {error && (
+              <Typography color="error" fontSize={14}>
+                {error}
+              </Typography>
+            )}
 
-          {error && (
-            <p style={{ color: "red", marginBottom: "10px" }}>
-              {error}
-            </p>
-          )}
-
-          <div style={field}>
-            <label>Title</label>
-            <input
-              type="text"
+            <TextField
+              label="Title"
+              fullWidth
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
             />
-          </div>
 
-          <div style={field}>
-            <label>Description</label>
-            <textarea
+            <TextField
+              label="Description"
+              fullWidth
+              multiline
+              rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-          </div>
-            
-         <div style={field}>
-  <label>Start Date</label>
-  <input
-    type="datetime-local"
-    value={startDate}
-    onChange={(e) => setStartDate(e.target.value)}
-  />
-</div>
 
-<div style={field}>
-  <label>Due Date</label>
-  <input
-    type="datetime-local"
-    value={dueDate}
-    onChange={(e) => setDueDate(e.target.value)}
-  />
-</div>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <DateTimePicker
+                label="Start Date"
+                value={startDate}
+                onChange={(newValue) => setStartDate(newValue)}
+                disablePast
+                minutesStep={5}
+                renderInput={(params) => <TextField {...params} fullWidth />}
+              />
 
-          <div style={buttons}>
-            <button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create"}
-            </button>
-            <button type="button" onClick={onClose}>
-              Cancel
-            </button>
-          </div>
+              <DateTimePicker
+                label="Due Date"
+                value={dueDate}
+                onChange={(newValue) => setDueDate(newValue)}
+                disablePast
+                minutesStep={5}
+                renderInput={(params) => <TextField {...params} fullWidth />}
+              />
+            </Stack>
+          </Stack>
+        </DialogContent>
 
-        </form>
-      </div>
-    </div>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={20} /> : "Create"}
+          </Button>
+        </DialogActions>
+      </Paper>
+    </Dialog>
   );
 }
-
-const overlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  background: "rgba(0,0,0,0.4)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000
-};
-
-const modalStyle = {
-  background: "white",
-  padding: "20px",
-  borderRadius: "8px",
-  width: "400px"
-};
-
-const field = {
-  marginBottom: "15px",
-  display: "flex",
-  flexDirection: "column"
-};
-
-const buttons = {
-  display: "flex",
-  justifyContent: "flex-end",
-  gap: "10px"
-};
 
 export default CreateTaskModal;

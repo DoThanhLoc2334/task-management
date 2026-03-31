@@ -1,24 +1,39 @@
 import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Stack,
+  Typography,
+  CircularProgress,
+  MenuItem
+} from "@mui/material";
+
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs from "dayjs";
+
 import { updateTask } from "../../services/task.service";
 import { getUsersInWorkspace } from "../../services/authService";
 
 function EditTaskModal({ task, workspaceId, onClose, onSave }) {
   const [title, setTitle] = useState(task?.title || "");
   const [description, setDescription] = useState(task?.description || "");
-  const [startDate, setStartDate] = useState(task?.start_date ? task.start_date.slice(0,16) : "");
-  const [dueDate, setDueDate] = useState(task?.due_date ? task.due_date.slice(0,16) : "");
+  const [startDate, setStartDate] = useState(task?.start_date ? dayjs(task.start_date) : dayjs());
+  const [dueDate, setDueDate] = useState(task?.due_date ? dayjs(task.due_date) : null);
   const [assigneeId, setAssigneeId] = useState(task?.assignee_id || "");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Load danh sách user trong workspace
+  // Load users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await getUsersInWorkspace(workspaceId);
-        const data = res.data?.data || [];
-        setUsers(data);
+        setUsers(res.data?.data || []);
       } catch (err) {
         console.error(err);
       }
@@ -26,13 +41,13 @@ function EditTaskModal({ task, workspaceId, onClose, onSave }) {
     if (workspaceId) fetchUsers();
   }, [workspaceId]);
 
-  // Update local state khi task thay đổi
+  // Update state when task changes
   useEffect(() => {
     if (task) {
       setTitle(task.title);
       setDescription(task.description);
-      setStartDate(task.start_date ? task.start_date.slice(0,16) : "");
-      setDueDate(task.due_date ? task.due_date.slice(0,16) : "");
+      setStartDate(task.start_date ? dayjs(task.start_date) : dayjs());
+      setDueDate(task.due_date ? dayjs(task.due_date) : null);
       setAssigneeId(task.assignee_id || "");
     }
   }, [task]);
@@ -48,13 +63,13 @@ function EditTaskModal({ task, workspaceId, onClose, onSave }) {
       const payload = {
         title: title.trim(),
         description: description.trim() || undefined,
-        start_date: startDate ? new Date(startDate).toISOString() : undefined,
-        due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
+        start_date: startDate ? startDate.toISOString() : undefined,
+        due_date: dueDate ? dueDate.toISOString() : undefined,
         assignee_id: assigneeId || undefined
       };
 
       await updateTask(task.id, payload);
-      onSave();  // refresh task list
+      onSave();
       onClose();
     } catch (err) {
       console.error(err);
@@ -65,61 +80,87 @@ function EditTaskModal({ task, workspaceId, onClose, onSave }) {
   };
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h2>Edit Task</h2>
+    <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ fontWeight: 600, backgroundColor: "#f5f5f5" }}>
+        Edit Task
+      </DialogTitle>
 
-        <form onSubmit={handleSubmit}>
-          {error && <p style={{ color: "red" }}>{error}</p>}
+      <DialogContent>
+        <Stack spacing={2} mt={1}>
+          {error && (
+            <Typography color="error" fontSize={14}>
+              {error}
+            </Typography>
+          )}
 
-          <div style={field}>
-            <label>Title</label>
-            <input type="text" value={title} onChange={(e)=>setTitle(e.target.value)} required />
-          </div>
+          <TextField
+            label="Title"
+            fullWidth
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
 
-          <div style={field}>
-            <label>Description</label>
-            <textarea value={description} onChange={(e)=>setDescription(e.target.value)} />
-          </div>
+          <TextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
 
-          <div style={field}>
-            <label>Start Date</label>
-            <input type="datetime-local" value={startDate} onChange={(e)=>setStartDate(e.target.value)} />
-          </div>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <DateTimePicker
+              label="Start Date"
+              value={startDate}
+              onChange={(newValue) => setStartDate(newValue)}
+              disablePast
+              minutesStep={5}
+              renderInput={(params) => <TextField {...params} fullWidth />}
+            />
 
-          <div style={field}>
-            <label>Due Date</label>
-            <input type="datetime-local" value={dueDate} onChange={(e)=>setDueDate(e.target.value)} />
-          </div>
+            <DateTimePicker
+              label="Due Date"
+              value={dueDate}
+              onChange={(newValue) => setDueDate(newValue)}
+              disablePast
+              minutesStep={5}
+              renderInput={(params) => <TextField {...params} fullWidth />}
+            />
+          </Stack>
 
-          <div style={field}>
-            <label>Assign To</label>
-            <select value={assigneeId} onChange={(e)=>setAssigneeId(e.target.value)}>
-              <option value="">-- None --</option>
-              {users.map(user=>(
-                <option key={user.id} value={user.id}>{user.name}</option>
-              ))}
-            </select>
-          </div>
+          <TextField
+            label="Assign To"
+            select
+            fullWidth
+            value={assigneeId}
+            onChange={(e) => setAssigneeId(e.target.value)}
+          >
+            <MenuItem value="">-- None --</MenuItem>
+            {users.map((user) => (
+              <MenuItem key={user.id} value={user.id}>
+                {user.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Stack>
+      </DialogContent>
 
-          <div style={buttons}>
-            <button type="submit" disabled={loading}>{loading ? "Saving..." : "Save"}</button>
-            <button type="button" onClick={onClose}>Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <DialogActions sx={{ p: 2 }}>
+        <Button onClick={onClose} disabled={loading}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? <CircularProgress size={20} /> : "Save"}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
-
-const overlayStyle = {
-  position: "fixed",
-  top:0, left:0, width:"100%", height:"100%",
-  background:"rgba(0,0,0,0.4)",
-  display:"flex", justifyContent:"center", alignItems:"center", zIndex:1000
-};
-const modalStyle = { background:"white", padding:"20px", borderRadius:"8px", width:"400px" };
-const field = { marginBottom:"15px", display:"flex", flexDirection:"column" };
-const buttons = { display:"flex", justifyContent:"flex-end", gap:"10px" };
 
 export default EditTaskModal;
