@@ -176,24 +176,6 @@ const ProjectBoard = () => {
                 onAddTask={fetchTasks}
                 onEditTask={handleEditTask}
               />
-
-              {/* BUTTON EDIT / DELETE COLUMN */}
-              {/* <div style={columnButtons}>
-                <button
-                  type="button"
-                  style={{ fontSize: "12px", padding: "4px 8px", marginRight: 5 }}
-                  onClick={() => handleEditColumn(column)}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  style={{ fontSize: "12px", padding: "4px 8px", backgroundColor: "red", color: "white" }}
-                  onClick={() => handleDeleteColumn(column.id)}
-                >
-                  Delete
-                </button>
-              </div> */}
               <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
