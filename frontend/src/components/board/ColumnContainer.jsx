@@ -8,12 +8,26 @@ import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditStatusTaskModal from "../../modals/Editing/EditStatusTaskModal.jsx";
 const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false, onAddTask }) => {
   const [openCreateTask, setOpenCreateTask] = useState(false);
   const [openEditTask, setOpenEditTask] = useState(false);
   const [editTaskData, setEditTaskData] = useState(null);
 
-  // ======= EDIT TASK =======
+  const [openEditStatus, setOpenEditStatus] = useState(false);
+  const [editStatusData, setEditStatusData] = useState(null);
+    
+  const handleEditStatus = (task) => {
+    setEditStatusData(task);
+    setOpenEditStatus(true);
+  };
+
+  const handleSaveEditStatus = async () => {
+    await onAddTask(); // reload tasks
+    setOpenEditStatus(false);
+    setEditStatusData(null);
+  };
+    // ======= EDIT TASK =======
   const handleEditTask = (task) => {
     setEditTaskData(task);
     setOpenEditTask(true);
@@ -65,21 +79,25 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           <Typography fontSize={12} color="gray">No tasks</Typography>
         ) : (
           tasks.map((task) => (
-              <Paper
-                key={task.id}
-                sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  position: "relative", // QUAN TRỌNG
-                  transition: "0.2s",
-                  "&:hover": {
-                    backgroundColor: "#e4e6ea",
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-                  }
-                }}
-              >
-                {/* NÚT 3 CHẤM */}
+                <Paper
+                  key={task.id}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 2,
+                    position: "relative",
+                    transition: "0.2s",
+
+                  
+                    opacity: task.status === "done" ? 0.5 : 1,
+                    
+                    "&:hover": {
+                      backgroundColor: "#e4e6ea",
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                    }
+                  }}
+                >
+                                
                 <IconButton
                   size="small"
                   onClick={(e) => handleMenuOpen(e, task)}
@@ -93,9 +111,42 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
                 </IconButton>
 
                 {/* CONTENT */}
-                <Typography fontSize={14} fontWeight={600}>
+                <Typography
+                  fontSize={14}
+                  fontWeight={600}
+                  sx={{
+                    textDecoration: task.status === "done" ? "line-through" : "none"
+                  }}
+                >
                   {task.title}
                 </Typography>
+                <Box
+                  sx={{
+                    mt: 0.5,
+                    display: "inline-block",
+                    px: 1,
+                    py: "2px",
+                    borderRadius: 1,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "white",
+
+             
+                    backgroundColor:
+                      task.status === "todo"
+                        ? "#777777"
+                        : task.status === "in_progress"
+                        ? "#ff9800"
+                        : "#4caf50"
+                  }}
+                >
+                  {task.status === "todo"
+                    ? "To Do"
+                    : task.status === "in_progress"
+                    ? "In Progress"
+                    : "Done"}
+                </Box>
+            
 
                 {task.description && (
                   <Typography fontSize={12} color="gray">
@@ -130,7 +181,15 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           >
             Edit
           </MenuItem>
-
+          <MenuItem
+              onClick={() => {
+                if (!selectedTask) return;
+                handleEditStatus(selectedTask); // ✅ thêm dòng này
+                handleMenuClose();
+              }}
+          >
+              Edit Status
+          </MenuItem>
           <MenuItem
             onClick={() => {
               if (!selectedTask) return;
@@ -168,6 +227,14 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           workspaceId={workspaceId} // truyền workspaceId để load user
           onClose={() => setOpenEditTask(false)}
           onSave={handleSaveEditTask}
+        />
+      )}
+      {openEditStatus && editStatusData && (
+        <EditStatusTaskModal
+          task={editStatusData}
+          open={openEditStatus}
+          onClose={() => setOpenEditStatus(false)}
+          onSave={handleSaveEditStatus}
         />
       )}
     </Paper>

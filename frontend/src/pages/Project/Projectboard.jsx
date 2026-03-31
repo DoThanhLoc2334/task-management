@@ -10,6 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditStatusTaskModal from "../../modals/Editing/EditStatusTaskModal.jsx";
 import {
   getColumnsByProject,
   createColumn,
@@ -30,6 +31,7 @@ const ProjectBoard = () => {
   const [openCreateColumn, setOpenCreateColumn] = useState(false);
 
   // ================= EDIT MODAL =================
+
   const [openEditColumn, setOpenEditColumn] = useState(false);
   const [editColumnData, setEditColumnData] = useState(null);
 
@@ -168,6 +170,8 @@ const ProjectBoard = () => {
       alert("Delete project failed");
     }
   };
+
+
   return (
     <>
       <div style={boardWrapper}>
@@ -200,6 +204,7 @@ const ProjectBoard = () => {
                 tasks={taskMap[column.id] || []}
                 onAddTask={fetchTasks}
                 onEditTask={handleEditTask}
+               
               />
               <Menu
                 anchorEl={anchorEl}
@@ -224,6 +229,7 @@ const ProjectBoard = () => {
                 >
                   Delete
                 </MenuItem>
+
               </Menu>
             </div>
           ))}
@@ -247,6 +253,7 @@ const ProjectBoard = () => {
         onClose={closeEditColumn}
         onSave={saveEditColumn}
       />
+
 
 
     </>
