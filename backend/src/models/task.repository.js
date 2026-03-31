@@ -72,6 +72,7 @@ const TaskRepository = {
       t.id,
       t.title,
       t.description,
+      t.status,
       t.start_date,
       t.due_date,
 
@@ -164,8 +165,10 @@ const TaskRepository = {
       `
     SELECT 
       t.id,
+      t.column_id,
       t.title,
       t.description,
+      t.status,
       t.start_date,
       t.due_date,
 
@@ -217,6 +220,8 @@ const TaskRepository = {
       description: row.description,
       start_date: row.start_date,
       due_date: row.due_date,
+      status: row.status,
+      column_id: row.column_id,
 
       assignee: row.assignee_id
         ? {
@@ -241,6 +246,7 @@ const TaskRepository = {
       t.start_date,
       t.due_date,
       t.position,
+      t.status,
 
       c.id AS column_id,
       c.name AS column_name,
@@ -280,6 +286,7 @@ const TaskRepository = {
       start_date: row.start_date,
       due_date: row.due_date,
       position: row.position,
+      status: row.status,
       assignee: row.assignee_id
         ? {
             id: row.assignee_id,
@@ -315,8 +322,8 @@ const TaskRepository = {
 
     const result = await db.query(
       `INSERT INTO tasks 
-      (column_id, title, description,  created_by, start_date, due_date, position)
-      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      (column_id, title, description,  created_by, start_date, due_date, position, status)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,'todo')
       RETURNING *`,
       [column_id, title, description, created_by, start_date, due_date, position]
     );
@@ -332,7 +339,8 @@ const TaskRepository = {
       start_date,
       due_date,
       position,
-      column_id
+      column_id,
+      status
     } = data;
 
     const result = await db.query(
@@ -344,10 +352,11 @@ const TaskRepository = {
       due_date = COALESCE($5, due_date),
       position = COALESCE($6, position),
       column_id = COALESCE($7, column_id),
+      status = COALESCE($8, status),
       updated_at = NOW()
-    WHERE id = $8
+    WHERE id = $9
     RETURNING *`,
-      [title, description, assignee_id, start_date, due_date, position, column_id, id]
+      [title, description, assignee_id, start_date, due_date, position, column_id, status, id]
     );
 
     return result.rows[0];
@@ -362,7 +371,7 @@ const TaskRepository = {
       `
       UPDATE tasks
       SET position = $1,
-          updated_at = NOW()
+      updated_at = NOW()
       WHERE id = $2
       RETURNING *
       `,

@@ -128,6 +128,21 @@ const TaskService = {
     return updated;
   },
 
+  async updateTaskStatus(taskId, status) {
+    const task = await TaskRepository.findById(taskId);
+    if (!task) throw new Error("TASK_NOT_FOUND");
+    const normalizeStatus = (status || "").trim().toLowerCase();
+
+    const allowed = ['todo', 'doing', 'done'];
+    if (!allowed.includes(normalizeStatus)) {
+      throw new Error("INVALID_STATUS");
+    }
+
+    const updated = await TaskRepository.update(taskId, { status: normalizeStatus });
+
+    return updated;
+  },
+
   async deleteTask(id, user_id) {
     const existing = await TaskRepository.findById(id);
     if (!existing) {

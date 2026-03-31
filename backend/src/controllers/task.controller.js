@@ -74,6 +74,19 @@ const TaskController = {
     }
   },
 
+  async updateStatus(req, res) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const data = await TaskService.updateTaskStatus(id, status);
+
+      return successResponse(res, data, "Status updated");
+    } catch (err) {
+      return errorResponse(res, err.message);
+    }
+  },
+
   async delete(req, res) {
     try {
       await TaskService.deleteTask(req.params.id, req.body.user_id);
