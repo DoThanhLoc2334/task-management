@@ -3,15 +3,29 @@ import { successResponse, errorResponse } from '../Utils/response.js';
 import db from '../config/db.js';
 
 const TaskController = {
-    async getAll(req, res) {
-        try {
-          const data = await TaskService.getAllTasks(req.query);
-          return successResponse(res, data);
-        } catch (err) {
-          return errorResponse(res, err.message);
-        }
-      },
+  async getAll(req, res) {
+    try {
+      const data = await TaskService.getAllTasks(req.query);
+      return successResponse(res, data);
+    } catch (err) {
+      return errorResponse(res, err.message);
+    }
+  },
+  async getByProject(req, res) {
+    try {
+      const { projectId } = req.params;
 
+      const data = await TaskService.getTasksByProject(projectId);
+
+      return successResponse(res, data);
+    } catch (err) {
+      if (err.message === 'PROJECT_ID_REQUIRED') {
+        return errorResponse(res, 'Project ID is required', 400);
+      }
+
+      return errorResponse(res, err.message);
+    }
+  },
   async getById(req, res) {
     try {
       const data = await TaskService.getTaskById(req.params.id);
@@ -36,7 +50,7 @@ const TaskController = {
       if (err.message === 'COLUMN_NOT_FOUND') {
         return errorResponse(res, 'Column not found', 404);
       }
-      
+
 
       if (err.message === 'CREATOR_NOT_IN_WORKSPACE') {
         return errorResponse(res, 'Creator not in workspace', 400);
