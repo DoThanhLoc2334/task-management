@@ -230,6 +230,68 @@ const TaskRepository = {
       attachments: row.attachments || []
     };
   },
+
+  async findByProjectId(projectId) {
+  const result = await db.query(
+    `
+    SELECT 
+      t.id,
+      t.title,
+      t.description,
+      t.start_date,
+      t.due_date,
+      t.position,
+
+      c.id AS column_id,
+      c.name AS column_name,
+
+      u.id AS assignee_id,
+      u.name AS assignee_name,
+      u.email AS assignee_email
+
+    FROM tasks t
+    JOIN columns c ON t.column_id = c.id
+    JOIN projects p ON c.project_id = p.id
+    LEFT JOIN users u ON t.assignee_id = u.id
+
+    WHERE p.id = $1
+
+    ORDER BY c.id, t.position ASC
+    `,
+    [projectId]
+  );
+
+  // 🔥 GROUP LOGIC ở đây
+  const columnsMap = {};
+
+  for (const row of result.rows) {
+    if (!columnsMap[row.column_id]) {
+      columnsMap[row.column_id] = {
+        column_id: row.column_id,
+        column_name: row.column_name,
+        tasks: []
+      };
+    }
+
+    columnsMap[row.column_id].tasks.push({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      start_date: row.start_date,
+      due_date: row.due_date,
+      position: row.position,
+      assignee: row.assignee_id
+        ? {
+            id: row.assignee_id,
+            name: row.assignee_name,
+            email: row.assignee_email
+          }
+        : null
+    });
+  }
+
+  return Object.values(columnsMap);
+},
   async create(data) {
     const {
       column_id,
