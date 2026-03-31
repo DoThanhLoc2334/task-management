@@ -4,7 +4,10 @@ import AddIcon from "@mui/icons-material/Add";
 import CreateTaskModal from "../../modals/Creation/CreateTaskModal";
 import EditTaskModal from "../../modals/Editing/EditTaskModal.jsx";
 import { deleteTask } from "../../services/task.service.js";
-
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false, onAddTask }) => {
   const [openCreateTask, setOpenCreateTask] = useState(false);
   const [openEditTask, setOpenEditTask] = useState(false);
@@ -34,7 +37,17 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
       alert("Delete task failed: " + (err.response?.data?.message || err.message));
     }
   };
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const handleMenuOpen = (event, task) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedTask(task);
+  };
 
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedTask(null);
+  };
   return (
     <Paper sx={{ width: 300, p: 2, borderRadius: 3, backgroundColor: "#f4f5f7", display: "flex", flexDirection: "column", maxHeight: "80vh" }}>
       {/* COLUMN TITLE */}
@@ -52,30 +65,83 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           <Typography fontSize={12} color="gray">No tasks</Typography>
         ) : (
           tasks.map((task) => (
-            <Paper
-              key={task.id}
-              sx={{
-                p: 1.5,
-                borderRadius: 2,
-                transition: "0.2s",
-                "&:hover": { backgroundColor: "#e4e6ea", transform: "translateY(-2px)", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }
-              }}
-            >
-              <Typography fontSize={14} fontWeight={600}>{task.title}</Typography>
-              {task.description && <Typography fontSize={12} color="gray">{task.description}</Typography>}
-              {task.due_date && (
-                <Typography fontSize={11} color="red">
-                  Due: {new Date(task.due_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+              <Paper
+                key={task.id}
+                sx={{
+                  p: 1.5,
+                  borderRadius: 2,
+                  position: "relative", // QUAN TRỌNG
+                  transition: "0.2s",
+                  "&:hover": {
+                    backgroundColor: "#e4e6ea",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                  }
+                }}
+              >
+                {/* NÚT 3 CHẤM */}
+                <IconButton
+                  size="small"
+                  onClick={(e) => handleMenuOpen(e, task)}
+                  sx={{
+                    position: "absolute",
+                    top: 5,
+                    right: 5
+                  }}
+                >
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
+
+                {/* CONTENT */}
+                <Typography fontSize={14} fontWeight={600}>
+                  {task.title}
                 </Typography>
-              )}
-              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                <Button size="small" variant="outlined" onClick={() => handleEditTask(task)}>Edit</Button>
-                <Button size="small" color="error" variant="outlined" onClick={() => handleDeleteTask(task.id)}>Delete</Button>
-              </Stack>
-            </Paper>
-          ))
+
+                {task.description && (
+                  <Typography fontSize={12} color="gray">
+                    {task.description}
+                  </Typography>
+                )}
+
+                {task.due_date && (
+                  <Typography fontSize={11} color="red">
+                    Due: {new Date(task.due_date).toLocaleDateString("en-GB")}
+                  </Typography>
+                )}
+              </Paper>
+            ))
+             
+              
+
+          
         )}
       </Box>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem
+            onClick={() => {
+              if (!selectedTask) return;
+              handleEditTask(selectedTask);
+              handleMenuClose();
+            }}
+          >
+            Edit
+          </MenuItem>
+
+          <MenuItem
+            onClick={() => {
+              if (!selectedTask) return;
+              handleDeleteTask(selectedTask.id);
+              handleMenuClose();
+            }}
+            sx={{ color: "red" }}
+          >
+            Delete
+          </MenuItem>
+        </Menu>
 
       {/* ADD TASK BUTTON */}
       <Button
