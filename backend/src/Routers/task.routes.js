@@ -5,77 +5,49 @@ import permissionMiddleware from '../middleware/permission.middleware.js';
 
 const router = express.Router();
 
+//  route cụ thể trước
+router.put(
+  '/:id/reorder',
+  authMiddleware,
+  TaskController.reorder
+);
+
+router.patch(
+  '/:id/status',
+  authMiddleware,
+  TaskController.updateStatus
+);
+
+//  route chung
 router.get(
-    '/',
-    authMiddleware,
-    TaskController.getAll
-  );
-  
-  router.get(
-    '/:id',
-    authMiddleware,
-    TaskController.getById
-  );
-  
-  router.post(
-    '/',
-    authMiddleware,
-    TaskController.create
-  );
-  
-  router.put(
-    '/:id', 
-    authMiddleware,
-    TaskController.update
-  );
-  
-  router.delete(
-    '/:id',
-    authMiddleware,
-    TaskController.delete
-  );
-  router.put(
-    '/:id/reorder',
-    authMiddleware,
-    TaskController.reorder
-  );
+  '/',
+  authMiddleware,
+  TaskController.getAll
+);
 
-  router.get(
-    '/',
-    authMiddleware,
-    TaskController.getAll
-  );
+router.post(
+  '/',
+  authMiddleware,
+  TaskController.create
+);
 
-  router.get(
-    '/:id',
-    authMiddleware,
-    TaskController.getById
-  );
+//  route có :id phải để sau cùng
+router.get(
+  '/:id',
+  authMiddleware,
+  TaskController.getById
+);
 
-  router.post(
-    '/',
-    authMiddleware,
-    TaskController.create
-  );
+router.put(
+  '/:id', 
+  authMiddleware,
+  TaskController.update
+);
 
-  router.put(
-    '/:id', 
-    authMiddleware,
-    TaskController.update
-  );
-
-  router.delete(
-    '/:id',
-    authMiddleware,
-    TaskController.delete
-  );
-
-
-  router.put(
-    '/:id/reorder',
-    authMiddleware,
-    TaskController.reorder
-  );
-
+router.delete(
+  '/:id',
+  authMiddleware,
+  TaskController.delete
+); 
 
 export default router;
