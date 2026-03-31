@@ -171,6 +171,7 @@ const TaskRepository = {
       t.status,
       t.start_date,
       t.due_date,
+      t.position,
 
       -- assignee
       u.id AS assignee_id,
@@ -222,6 +223,7 @@ const TaskRepository = {
       due_date: row.due_date,
       status: row.status,
       column_id: row.column_id,
+      position: row.position,
 
       assignee: row.assignee_id
         ? {
