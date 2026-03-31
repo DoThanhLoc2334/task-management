@@ -15,7 +15,8 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
-import { getWorkspaces, deleteWorkspace } from "../../services/workspace.js";
+// import { getWorkspaces, deleteWorkspace } from "../../services/workspace.js";
+import { getWorkspaces } from "../../services/workspace.js";
 
 function WorkspaceSwitcher({ refreshFlag, onRefresh }) {
   const [workspaces, setWorkspaces] = useState([]);
