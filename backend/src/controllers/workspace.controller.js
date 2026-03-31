@@ -122,9 +122,10 @@ const WorkspaceController = {
         return successResponse(res, data, data.message);
     } catch (err) {
       next(err);
-      
+
     }
   }
+
 
 };
 
