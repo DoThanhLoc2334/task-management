@@ -76,13 +76,23 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
       listeners,
       setNodeRef,
       transform,
-      transition
+      transition,
+      isDragging
     } = useSortable({ id: task.id });
 
     const style = {
       transform: CSS.Transform.toString(transform),
-      transition
+      transition,
+      touchAction: "none"
     };
+
+    const statusConfig = {
+      todo: { label: "To Do", bg: "#e3f2fd", color: "#1565c0" },
+      in_progress: { label: "In Progress", bg: "#fff3e0", color: "#ef6c00" },
+      done: { label: "Done", bg: "#e8f5e9", color: "#2e7d32" }
+    };
+
+    const statusMeta = statusConfig[task.status] || { label: task.status || "No Status", bg: "#f3f4f6", color: "#374151" };
 
     return (
       <Paper
@@ -93,7 +103,9 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           borderRadius: 2,
           position: "relative",
           transition: "0.2s",
-          opacity: task.status === "done" ? 0.5 : 1,
+          opacity: task.status === "done" ? 0.65 : 1,
+          backgroundColor: task.status === "done" ? "#f4f8f2" : undefined,
+          cursor: isDragging ? "grabbing" : "default",
           "&:hover": {
             backgroundColor: "#e4e6ea",
             transform: "translateY(-2px)",
@@ -101,18 +113,36 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           }
         }}
       >
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Box
-            {...attributes}
-            {...listeners}
-            sx={{
-              cursor: "grab",
-              color: "#888",
-              mr: 1,
-              fontSize: 14
-            }}
-          >
-            ⋮⋮
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              {...attributes}
+              {...listeners}
+              onClick={(e) => e.stopPropagation()}
+              sx={{
+                cursor: "grab",
+                color: "#888",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 28,
+                height: 28,
+                borderRadius: 1,
+                bgcolor: "#f0f0f0",
+                '&:hover': { bgcolor: '#e0e0e0' }
+              }}
+            >
+              ⋮⋮
+            </Box>
+            <Typography
+              fontSize={14}
+              fontWeight={600}
+              sx={{
+                textDecoration: task.status === "done" ? "line-through" : "none"
+              }}
+            >
+              {task.title}
+            </Typography>
           </Box>
           <IconButton
             size="small"
@@ -125,24 +155,32 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           </IconButton>
         </Box>
 
-        <Typography
-          fontSize={14}
-          fontWeight={600}
+        <Box
           sx={{
-            textDecoration: task.status === "done" ? "line-through" : "none"
+            display: "inline-flex",
+            px: 1,
+            py: 0.5,
+            borderRadius: 1,
+            bgcolor: statusMeta.bg,
+            color: statusMeta.color,
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            mb: 1
           }}
         >
-          {task.title}
-        </Typography>
+          {statusMeta.label}
+        </Box>
 
         {task.description && (
-          <Typography fontSize={12} color="gray">
+          <Typography fontSize={12} color="gray" mb={1}>
             {task.description}
           </Typography>
         )}
 
         {task.due_date && (
-          <Typography fontSize={11} color="red">
+          <Typography fontSize={11} color="red" mb={1}>
             Due: {new Date(task.due_date).toLocaleDateString("en-GB")}
           </Typography>
         )}
