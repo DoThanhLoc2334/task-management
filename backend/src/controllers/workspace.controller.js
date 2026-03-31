@@ -99,19 +99,32 @@ const WorkspaceController = {
   },
   
   async leaveWorkspace(req, res, next) {
-  try {
-    const workspaceId = req.params.id;
+    try {
+      const workspaceId = req.params.id;
 
-    const data = await WorkspaceService.leaveWorkspace(
-      workspaceId,
-      req.user.id
-    );
+      const data = await WorkspaceService.leaveWorkspace(
+        workspaceId,
+        req.user.id
+      );
 
-    return successResponse(res, data, data.message);
-  } catch (err) {
-    next(err);
+      return successResponse(res, data, data.message);
+    } catch (err) {
+      next(err);
+    }
+  },
+  async deleteWorkspace(req, res, next) {
+    try {
+      const workspaceId = req.params.id; 
+      const data = await WorkspaceService.deleteWorkspace(
+        workspaceId,
+        req.user.id
+      );
+        return successResponse(res, data, data.message);
+    } catch (err) {
+      next(err);
+      
+    }
   }
-}
 
 };
 

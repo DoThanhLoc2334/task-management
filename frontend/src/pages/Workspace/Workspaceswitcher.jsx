@@ -1,185 +1,77 @@
-// import { useEffect, useState } from "react";
-// import { getWorkspaces } from "../../services/workspace.js";
-// import { useNavigate } from "react-router-dom";
-
-// import Card from "@mui/material/Card";
-// import CardContent from "@mui/material/CardContent";
-// import Typography from "@mui/material/Typography";
-// import Box from "@mui/material/Box";
-// import Skeleton from "@mui/material/Skeleton";
-
-// const WorkspaceSwitcher = ({ refreshFlag }) => {
-//   const [workspaces, setWorkspaces] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const navigate = useNavigate();
-
-//   const handleWorkspaceClick = (workspaceId) => {
-//     navigate(`/workspacedashboard/${workspaceId}`);
-//   };
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       setLoading(true);
-//       try {
-//         const res = await getWorkspaces();
-//         console.log("API response:", res);
-//         if (res.success && Array.isArray(res.data)) {
-//           setWorkspaces(res.data);
-//         } else {
-//           setWorkspaces([]);
-//         }
-//       } catch (err) {
-//         console.error("Fetch workspaces error:", err);
-//         setError("Failed to load workspaces");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchData();
-//   }, [refreshFlag]); // ✅ re-fetch mỗi khi refreshFlag thay đổi
-
-//   if (loading) {
-//     return (
-//       <Box sx={{ p: 4, display: "flex", flexWrap: "wrap", gap: 3 }}>
-//         {[1, 2, 3].map((i) => (
-//           <Skeleton
-//             key={i}
-//             variant="rectangular"
-//             width={260}
-//             height={150}
-//             sx={{ borderRadius: 3 }}
-//           />
-//         ))}
-//       </Box>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <Box sx={{ p: 4 }}>
-//         <Typography color="error">{error}</Typography>
-//       </Box>
-//     );
-//   }
-
-//   if (workspaces.length === 0) {
-//     return (
-//       <Box sx={{ p: 4 }}>
-//         <Typography>No workspaces available.</Typography>
-//       </Box>
-//     );
-//   }
-
-//   return (
-//     <Box sx={{ p: 4, display: "flex", flexWrap: "wrap", gap: 3 }}>
-//       {workspaces.map((workspace) => (
-//         <Card
-//           key={workspace.id}
-//           onClick={() => handleWorkspaceClick(workspace.id)}
-//           sx={{
-//             width: 260,
-//             height: 150,
-//             cursor: "pointer",
-//             borderRadius: 3,
-//             transition: "0.2s",
-//             display: "flex",
-//             alignItems: "center",
-//             justifyContent: "center",
-//             textAlign: "center",
-//             "&:hover": {
-//               transform: "translateY(-4px)",
-//               boxShadow: 6,
-//             },
-//           }}
-//         >
-//           <CardContent>
-//             <Typography
-//               variant="h6"
-//               sx={{
-//                 fontWeight: 600,
-//                 overflow: "hidden",
-//                 textOverflow: "ellipsis",
-//                 whiteSpace: "nowrap",
-//               }}
-//             >
-//               {workspace.name || "No name"}
-//             </Typography>
-//             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-//               {workspace.description || "No description"}
-//             </Typography>
-//             <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-//               ID: {workspace.id || "N/A"}
-//             </Typography>
-//           </CardContent>
-//         </Card>
-//       ))}
-//     </Box>
-//   );
-// };
-
-// export default WorkspaceSwitcher;
 import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
-  Grid,
   Card,
-  CardContent,
-  Skeleton,
   Stack,
+  Divider,
+  IconButton,
+  Skeleton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Button,
-  Divider
 } from "@mui/material";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
-import { getWorkspaces } from "../../services/workspace.js";
+import { getWorkspaces, deleteWorkspace } from "../../services/workspace.js";
 
-function WorkspaceSwitcher({ refreshFlag }) {
+function WorkspaceSwitcher({ refreshFlag, onRefresh }) {
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null });
   const navigate = useNavigate();
+
+  const fetchWorkspaces = async () => {
+    setLoading(true);
+    try {
+      const res = await getWorkspaces();
+      if (res.success && Array.isArray(res.data)) {
+        setWorkspaces(res.data);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWorkspaces();
+  }, [refreshFlag]);
 
   const handleWorkspaceClick = (workspaceId) => {
     navigate(`/workspacedashboard/${workspaceId}`);
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const res = await getWorkspaces();
-        if (res.success && Array.isArray(res.data)) {
-          setWorkspaces(res.data);
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [refreshFlag]);
+  const handleDeleteClick = (id) => {
+    setDeleteDialog({ open: true, id });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteWorkspace(deleteDialog.id);
+      setDeleteDialog({ open: false, id: null });
+      fetchWorkspaces();
+      if (onRefresh) onRefresh(); // nếu muốn parent refresh
+    } catch (err) {
+      console.error("Delete workspace failed:", err);
+      alert("Delete workspace failed");
+    }
+  };
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f6f8fc", py: 6 }}>
       {/* HEADER */}
       <Box sx={{ maxWidth: 900, mx: "auto", mb: 6, px: 3 }}>
-        <Typography
-          variant="h5"
-          sx={{ fontWeight: 800, color: "#4669fa", mb: 2 }}
-        >
+        <Typography variant="h5" sx={{ fontWeight: 800, color: "#4669fa", mb: 2 }}>
           Task Management
         </Typography>
-
         <Typography variant="h4" sx={{ fontWeight: 800 }}>
           Your Workspaces
         </Typography>
-
-        <Typography sx={{ color: "#777", mt: 1 }}>
-          Select a workspace to continue
-        </Typography>
+        <Typography sx={{ color: "#777", mt: 1 }}>Select a workspace to continue</Typography>
       </Box>
 
       {/* CONTENT */}
@@ -187,13 +79,10 @@ function WorkspaceSwitcher({ refreshFlag }) {
         <Card sx={{ borderRadius: "16px", p: 3 }}>
           <Stack spacing={2}>
             {loading
-              ? [1, 2, 3].map((i) => (
-                  <Skeleton key={i} variant="rounded" height={70} />
-                ))
+              ? [1, 2, 3].map((i) => <Skeleton key={i} variant="rounded" height={70} />)
               : workspaces.map((ws, index) => (
                   <Box key={ws.id}>
                     <Box
-                      onClick={() => handleWorkspaceClick(ws.id)}
                       sx={{
                         display: "flex",
                         justifyContent: "space-between",
@@ -203,23 +92,26 @@ function WorkspaceSwitcher({ refreshFlag }) {
                         borderRadius: "10px",
                         cursor: "pointer",
                         transition: "0.2s",
-                        '&:hover': {
-                          bgcolor: "#f1f3ff"
-                        }
+                        '&:hover': { bgcolor: "#f1f3ff" },
                       }}
                     >
-                      <Box>
-                        <Typography sx={{ fontWeight: 700 }}>
-                          {ws.name}
-                        </Typography>
+                      <Box onClick={() => handleWorkspaceClick(ws.id)}>
+                        <Typography sx={{ fontWeight: 700 }}>{ws.name}</Typography>
                         <Typography variant="caption" color="text.secondary">
                           Workspace ID: {ws.id}
                         </Typography>
                       </Box>
 
-                      <Typography sx={{ color: "#4669fa", fontWeight: 700 }}>
-                        →
-                      </Typography>
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteClick(ws.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                        <Typography sx={{ color: "#4669fa", fontWeight: 700 }}>→</Typography>
+                      </Box>
                     </Box>
 
                     {index !== workspaces.length - 1 && <Divider />}
@@ -228,6 +120,20 @@ function WorkspaceSwitcher({ refreshFlag }) {
           </Stack>
         </Card>
       </Box>
+
+      {/* DELETE CONFIRM DIALOG */}
+      <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, id: null })}>
+        <DialogTitle>Delete Workspace</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this workspace? This action cannot be undone.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialog({ open: false, id: null })}>Cancel</Button>
+          <Button color="error" onClick={confirmDelete}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

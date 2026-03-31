@@ -270,6 +270,16 @@ const WorkspaceService = {
     );
 
     return { message: 'Member removed successfully' };
+  },
+  async deleteWorkspace(workspaceId, userId) {
+    if (!workspaceId || !userId) {
+      throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Missing required fields');
+    }
+    const workspace = await WorkspaceRepository.findById(workspaceId);
+    if (!workspace) {
+      throw new AppError(ERROR_CODES.WORKSPACE_NOT_FOUND, 404);
+    }
+    
   }
 };
 

@@ -162,7 +162,7 @@ const ProjectBoard = () => {
       alert("Project deleted successfully");
 
       // redirect về trang trước hoặc dashboard
-      navigate("/workspace"); // hoặc "/projects"
+      navigate(`/workspacedashboard/${workspaceId}`); // hoặc "/projects"
     } catch (err) {
       console.error(err);
       alert("Delete project failed");
