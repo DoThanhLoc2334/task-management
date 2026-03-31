@@ -44,7 +44,12 @@ function Login() {
   };
 
   return (
-    <Grid container sx={{ minHeight: "100vh", bgcolor: "#fff" }}>
+    <Grid
+      container
+      justifyContent="center"
+      alignItems="center"
+      sx={{ minHeight: "100vh", bgcolor: "#fff" }}
+    >
       {/* CỘT BÊN TRÁI: FORM SECTION */}
       <Grid 
         item 
@@ -53,6 +58,8 @@ function Login() {
         sx={{ 
           display: 'flex', 
           flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
           px: { xs: 3, sm: 6, md: 10 },
           py: 4
         }}
@@ -71,8 +78,8 @@ function Login() {
         </Typography>
 
         {/* Form Container - Căn giữa theo chiều dọc */}
-        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ width: "100%", maxWidth: 480 }}>
+        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+          <Box sx={{ width: "100%", maxWidth: 480, mx: 'auto' }}>
             <Typography 
               variant="h3" 
               sx={{ 
