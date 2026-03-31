@@ -126,7 +126,6 @@ const WorkspaceController = {
     }
   }
 
-
 };
 
 export default WorkspaceController;
