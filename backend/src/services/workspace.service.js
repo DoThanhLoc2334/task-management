@@ -129,7 +129,7 @@ const WorkspaceService = {
     }
 
     //  validate role hợp lệ
-    const validRoles = ['OWNER', 'MODERATOR', 'MEMBER', 'GUEST'];
+    const validRoles = ['owner', 'moderator', 'member', 'guest'];
 
     if (!validRoles.includes(newRole)) {
       throw new AppError(ERROR_CODES.BAD_REQUEST, 400, 'Invalid role');

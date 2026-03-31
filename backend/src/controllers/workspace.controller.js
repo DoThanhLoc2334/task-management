@@ -65,6 +65,7 @@ const WorkspaceController = {
       const workspaceId = req.params.id;       // /:id
       const targetUserId = req.params.userId;  // /members/:userId
       const { role } = req.body;
+      console.log("Changing role:", { workspaceId, targetUserId, role });
 
       const data = await WorkspaceService.changeRole(
         workspaceId,

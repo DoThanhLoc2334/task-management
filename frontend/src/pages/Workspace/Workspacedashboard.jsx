@@ -128,6 +128,7 @@ const WorkspaceDashboard = () => {
               <Typography sx={{ color: '#6F767E', fontWeight: 500 }}>
                 {workspace.description || "No description provided"}
               </Typography>
+  
             </Box>
           </Stack>
 

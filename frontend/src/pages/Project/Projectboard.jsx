@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect  } from "react";
+import { useParams,useNavigate } from "react-router-dom";
 
 import ColumnContainer from "../../components/board/ColumnContainer";
 import AddColumnButton from "../../components/board/AddColumnButton";
 import CreateColumnModal from "../../modals/Creation/CreateColumnModal";
 import EditColumnModal from "../../modals/Editing/EditColumnModal.jsx"; 
-import { getTasksByProjectId } from "../../services/projectsServices.js";
+import { getTasksByProjectId,deleteProject } from "../../services/projectsServices.js";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -16,8 +16,10 @@ import {
   updateColumn,
   deleteColumn
 } from "../../services/columnsService.js";
+import { Button } from "@mui/material";
 
 const ProjectBoard = () => {
+  const navigate = useNavigate();
   const { id: projectId } = useParams();
 
   const [columnList, setColumnList] = useState([]);
@@ -150,13 +152,36 @@ const ProjectBoard = () => {
   // ================= UI =================
   if (loading) return <div style={{ padding: 20 }}>Loading board...</div>;
   if (error) return <div style={{ padding: 20, color: "red" }}>{error}</div>;
+ 
 
+  const handleDeleteProject = async () => {
+    if (!window.confirm("Are you sure you want to delete this project?")) return;
+
+    try {
+      await deleteProject(projectId);
+      alert("Project deleted successfully");
+
+      // redirect về trang trước hoặc dashboard
+      navigate("/workspace"); // hoặc "/projects"
+    } catch (err) {
+      console.error(err);
+      alert("Delete project failed");
+    }
+  };
   return (
     <>
       <div style={boardWrapper}>
         <h2 style={{ marginBottom: 10 }}>
           {columnList.length ? "Project Board" : "No Columns Yet"}
         </h2>
+        <Button
+          variant="contained"
+          color="error"
+          sx={{ mb: 2 }}
+          onClick={handleDeleteProject}
+        >
+          Delete Project
+        </Button>
 
         <div style={boardContainer}>
           {columnList.map((column) => (

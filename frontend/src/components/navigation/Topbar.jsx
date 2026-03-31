@@ -18,10 +18,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
 import { createWorkspace } from "../../services/workspace.js";
+import { createProject } from "../../services/projectsServices.js";
+
 import { parseToken } from "../../Utils/parseToken.js";
 
 import CreateWorkspaceModal from "../../modals/Creation/CreateWorkspaceModal";
-import CreateColumnModal from "../../modals/Creation/CreateColumnModal";
+
 import CreateProjectModal from "../../modals/Creation/CreateProjectModal";
 
 function Topbar({ onWorkspaceCreated }) {
@@ -35,6 +37,19 @@ function Topbar({ onWorkspaceCreated }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
+  const getWorkspaceIdFromPath = (pathname) => {
+    const dashboardMatch = pathname.match(/^\/workspacedashboard\/([^/]+)/);
+    if (dashboardMatch) return dashboardMatch[1];
+    const workspaceMatch = pathname.match(/^\/workspace\/([^/]+)/);
+    if (workspaceMatch) return workspaceMatch[1];
+    return null;
+  };
+
+  const getProjectIdFromPath = (pathname) => {
+    const match = pathname.match(/^\/projects\/([^/]+)/);
+    return match ? match[1] : null;
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const userInfo = parseToken(token);
@@ -43,17 +58,36 @@ function Topbar({ onWorkspaceCreated }) {
 
   const getCreateLabel = () => {
     if (location.pathname.includes("/workspaceswitcher")) return "+ Workspace";
-    if (location.pathname.includes("/projects")) return "+ Column";
-    if (location.pathname.includes("/workspace")) return "+ Project";
+    if (
+      location.pathname.startsWith("/workspacedashboard/") ||
+      location.pathname.startsWith("/workspace/")
+    ) return "+ Project";
+
     return "+ Create";
   };
 
   const handleCreate = async (data) => {
     try {
+      // CREATE WORKSPACE
       if (location.pathname.includes("/workspaceswitcher")) {
         const newWorkspace = await createWorkspace(data);
         if (onWorkspaceCreated) onWorkspaceCreated(newWorkspace);
       }
+
+      // CREATE PROJECT
+      else if (
+        location.pathname.startsWith("/workspacedashboard/") ||
+        location.pathname.startsWith("/workspace/")
+      ) {
+        const workspaceId = getWorkspaceIdFromPath(location.pathname);
+        if (!workspaceId) throw new Error("Workspace ID missing");
+
+        await createProject({
+          ...data,
+          workspace_id: workspaceId
+        });
+      }
+
       setOpenModal(false);
     } catch (err) {
       console.error("Create error:", err);
@@ -66,10 +100,10 @@ function Topbar({ onWorkspaceCreated }) {
     if (location.pathname.includes("/workspaceswitcher")) {
       return <CreateWorkspaceModal onClose={() => setOpenModal(false)} onCreate={handleCreate} />;
     }
-    if (location.pathname.includes("/projects")) {
+    if (location.pathname.startsWith("/projects/")) {
       return <CreateColumnModal onClose={() => setOpenModal(false)} onCreate={handleCreate} />;
     }
-    if (location.pathname.includes("/workspace")) {
+    if (location.pathname.startsWith("/workspacedashboard/") || location.pathname.startsWith("/workspacedashboard/")) {
       return <CreateProjectModal onClose={() => setOpenModal(false)} onCreate={handleCreate} />;
     }
     return null;
