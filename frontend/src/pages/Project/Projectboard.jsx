@@ -5,7 +5,7 @@ import ColumnContainer from "../../components/board/ColumnContainer";
 import AddColumnButton from "../../components/board/AddColumnButton";
 import CreateColumnModal from "../../modals/Creation/CreateColumnModal";
 import EditColumnModal from "../../modals/Editing/EditColumnModal.jsx"; 
-import { getTasksByProjectId,deleteProject } from "../../services/projectsServices.js";
+import { getTasksByProjectId, getProjectById, deleteProject } from "../../services/projectsServices.js";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -22,6 +22,7 @@ import { Button } from "@mui/material";
 const ProjectBoard = () => {
   const navigate = useNavigate();
   const { id: projectId } = useParams();
+  const [workspaceId, setWorkspaceId] = useState(null);
 
   const [columnList, setColumnList] = useState([]);
   const [taskList, setTaskList] = useState([]);
@@ -88,9 +89,20 @@ const ProjectBoard = () => {
     }
   };
 
+  const fetchProject = async () => {
+    try {
+      const res = await getProjectById(projectId);
+      const project = res.data?.data || res.data || null;
+      setWorkspaceId(project?.workspace_id || null);
+    } catch (err) {
+      console.error("Fetch project error:", err);
+    }
+  };
+
   // ================= LOAD =================
   useEffect(() => {
     if (projectId) {
+      fetchProject();
       fetchColumns();
       fetchTasks();
     }
@@ -163,8 +175,11 @@ const ProjectBoard = () => {
       await deleteProject(projectId);
       alert("Project deleted successfully");
 
-      // redirect về trang trước hoặc dashboard
-      navigate(`/workspacedashboard/${workspaceId}`); // hoặc "/projects"
+      if (workspaceId) {
+        navigate(`/workspacedashboard/${workspaceId}`);
+      } else {
+        navigate(-1);
+      }
     } catch (err) {
       console.error(err);
       alert("Delete project failed");
@@ -204,7 +219,7 @@ const ProjectBoard = () => {
                 tasks={taskMap[column.id] || []}
                 onAddTask={fetchTasks}
                 onEditTask={handleEditTask}
-               
+                workspaceId={workspaceId}
               />
               <Menu
                 anchorEl={anchorEl}

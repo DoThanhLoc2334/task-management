@@ -9,6 +9,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditStatusTaskModal from "../../modals/Editing/EditStatusTaskModal.jsx";
+import EditAssigneeModal from "../../modals/Editing/EditAssigneeModal.jsx";
 const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false, onAddTask }) => {
   const [openCreateTask, setOpenCreateTask] = useState(false);
   const [openEditTask, setOpenEditTask] = useState(false);
@@ -16,7 +17,18 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
 
   const [openEditStatus, setOpenEditStatus] = useState(false);
   const [editStatusData, setEditStatusData] = useState(null);
-    
+  const [openEditAssignee, setOpenEditAssignee] = useState(false);
+  const [editAssigneeData, setEditAssigneeData] = useState(null);
+
+  const handleEditAssignee = (task) => {
+    setEditAssigneeData(task);
+    setOpenEditAssignee(true);
+  }
+  const handleSaveEditAssignee = async () => {
+    await onAddTask(); // refresh danh sách task
+    setOpenEditAssignee(false);
+    setEditAssigneeData(null);
+  }
   const handleEditStatus = (task) => {
     setEditStatusData(task);
     setOpenEditStatus(true);
@@ -182,6 +194,15 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
             Edit
           </MenuItem>
           <MenuItem
+            onClick={() => {
+              if (!selectedTask) return;
+              handleEditAssignee(selectedTask);
+              handleMenuClose();
+            }}
+          >
+            Assign
+          </MenuItem>
+          <MenuItem
               onClick={() => {
                 if (!selectedTask) return;
                 handleEditStatus(selectedTask); // ✅ thêm dòng này
@@ -235,6 +256,15 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           open={openEditStatus}
           onClose={() => setOpenEditStatus(false)}
           onSave={handleSaveEditStatus}
+        />
+      )}
+      {openEditAssignee && editAssigneeData && (
+        <EditAssigneeModal
+          task={editAssigneeData}
+          workspaceId={workspaceId}
+          open={openEditAssignee}
+          onClose={() => setOpenEditAssignee(false)}
+          onSave={handleSaveEditAssignee}
         />
       )}
     </Paper>
