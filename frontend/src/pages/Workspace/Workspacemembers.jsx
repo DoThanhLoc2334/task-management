@@ -152,7 +152,7 @@ const WorkspaceMembers = () => {
     try {
       await leaveWorkspace(workspaceId);
       alert("You have successfully left the workspace.");
-      navigate("/workspaces");
+      navigate("/workspaceswitcher");
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Failed to leave workspace");
