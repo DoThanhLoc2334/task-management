@@ -261,12 +261,49 @@ frontend/
 
 > Add images like this:
 
-```md
-![Login](./docs/images/login.png)
-![Kanban](./docs/images/kanban.png)
-```
+## 📸 Screenshots
 
----
+### 🔐 Login Page
+![Login](./images/login.png)
+
+### 📝 Register Page
+![Register](./images/signup.png)
+
+### 🏠 Workspace Dashboard
+![Workspace](./images/yourworkspace.png)
+
+### ➕ Create Workspace
+![Create Workspace](./images/creatwp.png)
+
+### 👥 Invite Member
+![Invite Member](./images/invitemem.png)
+
+### 📊 Dashboard
+![Dashboard](./images/wpDashboard.png)
+
+### 📌 Project Board
+![Project Board](./images/projboard.png)
+
+### ➕ Create Task
+![Create Task](./images/createnewtask.png)
+
+### ✏️ Edit Task
+![Edit Task](./images/edittask.png)
+
+### 👤 Assign Task
+![Assign Task](./images/assigntask.png)
+
+### 🧱 Edit Column
+![Edit Column](./images/editcol.png)
+
+### 🔄 Update Status
+![Update Status](./images/updatestatus.png)
+
+### ➕ Create Column
+![Create Column](./images/createcol.png)
+
+### 👤 Update Profile
+![Update Profile](./images/updateprofile.png)
 
 ## 👨‍💻 Team Members
 
