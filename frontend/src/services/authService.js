@@ -7,12 +7,12 @@ const login = (data) =>{
 const register = (data) =>{ 
   return instance.post('/auth/register', data);
 }
-// 📌 Lấy danh sách người dùng (cần auth)
+//  Lấy danh sách người dùng (cần auth)
 const getUsers = () => {
   return instance.get("/auth/user");
 };
 
-// 📌 Lấy danh sách người dùng chưa có trong workspace
+//  Lấy danh sách người dùng chưa có trong workspace
 const getUsersNotInWorkspace = (workspaceId) => {
   return instance.get(`/auth/invitemenber?workspace_id=${workspaceId}`);
 };
