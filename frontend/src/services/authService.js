@@ -7,7 +7,7 @@ const login = (data) =>{
 const register = (data) =>{ 
   return instance.post('/auth/register', data);
 }
-//  Lấy danh sách người dùng (cần auth)
+//  Lấy danh sách người dùng 
 const getUsers = () => {
   return instance.get("/auth/user");
 };

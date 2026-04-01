@@ -36,8 +36,8 @@ const ProjectBoard = () => {
   const [openEditColumn, setOpenEditColumn] = useState(false);
   const [editColumnData, setEditColumnData] = useState(null);
 
-  const [openEditTask, setOpenEditTask] = useState(false);
-  const [editTaskData, setEditTaskData] = useState(null);
+  // const [openEditTask, setOpenEditTask] = useState(false);
+  // const [editTaskData, setEditTaskData] = useState(null);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedColumn, setSelectedColumn] = useState(null);
@@ -52,16 +52,16 @@ const ProjectBoard = () => {
     setSelectedColumn(null);
   };
 
-  const handleEditTask = (task) => {
-    setEditTaskData(task);
-    setOpenEditTask(true);
-  };
+  // const handleEditTask = (task) => {
+  //   setEditTaskData(task);
+  //   setOpenEditTask(true);
+  // };
 
-  const saveEditTask = async () => {
-    await fetchTasks();
-    setOpenEditTask(false);
-    setEditTaskData(null);
-  };
+  // const saveEditTask = async () => {
+  //   await fetchTasks();
+  //   setOpenEditTask(false);
+  //   setEditTaskData(null);
+  // };
 
   // ================= FETCH COLUMNS =================
   const fetchColumns = async () => {
@@ -218,7 +218,7 @@ const ProjectBoard = () => {
                 column={column}
                 tasks={taskMap[column.id] || []}
                 onAddTask={fetchTasks}
-                onEditTask={handleEditTask}
+                // onEditTask={handleEditTask}
                 workspaceId={workspaceId}
               />
               <Menu
@@ -240,7 +240,13 @@ const ProjectBoard = () => {
                     handleDeleteColumn(selectedColumn.id);
                     handleMenuClose();
                   }}
-                  sx={{ color: "red" }}
+                  sx={{
+                          color: "#5b2222",
+                          "&:hover": {
+                            backgroundColor: "#fdecea",
+                            color: "#000147"
+                          }
+                  }}
                 >
                   Delete
                 </MenuItem>

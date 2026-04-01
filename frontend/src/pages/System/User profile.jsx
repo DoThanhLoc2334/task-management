@@ -10,6 +10,7 @@ import {
 
 import { parseToken } from "../../Utils/parseToken.js";
 
+
 function UserProfile() {
   const [user, setUser] = useState(null);
 

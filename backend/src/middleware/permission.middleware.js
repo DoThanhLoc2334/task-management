@@ -8,7 +8,7 @@ const permissionMiddleware = (requiredRoles = []) => {
       const userId = req.user.id;
       const taskId = req.params.id;
 
-      // 🔥 lấy workspace từ task
+      //  lấy workspace từ task
       const result = await db.query(
         `
         SELECT p.workspace_id
@@ -26,7 +26,7 @@ const permissionMiddleware = (requiredRoles = []) => {
 
       const workspace_id = result.rows[0].workspace_id;
 
-      // 🔥 check membership
+      //  check membership
       const member = await WorkspaceRepository.getUserRole(
         workspace_id,
         userId
@@ -36,7 +36,7 @@ const permissionMiddleware = (requiredRoles = []) => {
         return errorResponse(res, 'Forbidden', 403);
       }
 
-      // 🔥 check role
+      //  check role
       if (requiredRoles.length && !requiredRoles.includes(member.role)) {
         return errorResponse(res, 'Permission denied', 403);
       }
