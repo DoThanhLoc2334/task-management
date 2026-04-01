@@ -94,6 +94,7 @@ function Topbar({ onWorkspaceCreated }) {
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
+
     handleCloseMenu();
     navigate("/");
   };

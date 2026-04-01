@@ -59,7 +59,7 @@ const TaskService = {
     const workspace_id = columnResult.rows[0].workspace_id;
 
 
-    // 🔥 3. check created_by thuộc workspace
+    // 3. check created_by thuộc workspace
     const creatorCheck = await db.query(
       `
       SELECT * FROM workspace_members
@@ -72,7 +72,7 @@ const TaskService = {
       throw new Error('CREATOR_NOT_IN_WORKSPACE');
     }
 
-    // 🔥 create task
+    //  create task
     const task = await TaskRepository.create(data);
 
     await ActivityRepository.create({
@@ -92,7 +92,7 @@ const TaskService = {
       throw new Error('TASK_NOT_FOUND');
     }
 
-    // 🔥 nếu đổi column (tức là move task)
+    //  nếu đổi column (tức là move task)
     if (data.column_id && data.column_id !== existing.column_id) {
 
       const dependencies = await this.checkDependencies(id);
@@ -150,7 +150,7 @@ const TaskService = {
       throw new Error('TASK_NOT_FOUND');
     }
 
-    // 🔥 CHECK: có task nào phụ thuộc vào task này không
+    //  CHECK: có task nào phụ thuộc vào task này không
     const dependencyCheck = await db.query(
       `
       SELECT * FROM task_dependencies
@@ -236,7 +236,7 @@ const TaskService = {
       throw new Error("Invalid reorder input");
     }
 
-    // 🔥 CHECK có cần reindex không
+    //  CHECK có cần reindex không
     const NEED_REINDEX_THRESHOLD = 0.00001;
 
     if (
@@ -244,11 +244,11 @@ const TaskService = {
       afterTask &&
       Math.abs(beforeTask.position - afterTask.position) < NEED_REINDEX_THRESHOLD
     ) {
-      console.log("⚠️ Reindex triggered");
+      console.log(" Reindex triggered");
 
       await TaskRepository.reindex(task.column_id);
 
-      // 🔥 lấy lại position sau khi reindex
+      //  lấy lại position sau khi reindex
       const newBefore = await TaskRepository.findById(beforeId);
       const newAfter = await TaskRepository.findById(afterId);
 

@@ -66,7 +66,7 @@ const TaskRepository = {
 
     const safeOrder = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
 
-    // 👉 MAIN QUERY
+    //  MAIN QUERY
     const dataQuery = `
     SELECT 
       t.id,
@@ -123,7 +123,7 @@ const TaskRepository = {
 
     const dataResult = await db.query(dataQuery, values);
 
-    // 👉 COUNT QUERY (KHÔNG JOIN để tối ưu)
+    //  COUNT QUERY (KHÔNG JOIN để tối ưu)
     const countQuery = `
     SELECT COUNT(*) FROM tasks t
     ${whereClause}
@@ -134,7 +134,7 @@ const TaskRepository = {
       values.slice(0, values.length - 2)
     );
 
-    // 👉 FORMAT DATA
+    //  FORMAT DATA
     const formattedData = dataResult.rows.map(row => ({
       id: row.id,
       title: row.title,
@@ -269,7 +269,7 @@ const TaskRepository = {
     [projectId]
   );
 
-  // 🔥 GROUP LOGIC ở đây
+  //  GROUP LOGIC ở đây
   const columnsMap = {};
 
   for (const row of result.rows) {
@@ -312,7 +312,7 @@ const TaskRepository = {
       due_date
     } = data;
 
-    // 🔥 lấy position tiếp theo
+    //  lấy position tiếp theo
     const posResult = await db.query(
       `SELECT COALESCE(MAX(position), -1) + 1 AS new_position
       FROM tasks
@@ -382,23 +382,7 @@ const TaskRepository = {
 
     return result.rows[0];
   },
-  // async reindex(columnId) {
-  //   await db.query(
-  //     `
-  //     UPDATE tasks
-  //     SET position = sub.new_pos
-  //     FROM (
-  //       SELECT id,
-  //             ROW_NUMBER() OVER (ORDER BY position, created_at) AS new_pos
-  //       FROM tasks
-  //       WHERE column_id = $1
-  //     ) sub
-  //     WHERE tasks.id = sub.id
-  //     AND tasks.column_id = $1;
-  //     `,
-  //     [columnId]
-  //   );
-  // }
+
   async reindex(columnId) {
     await db.query(
       `
