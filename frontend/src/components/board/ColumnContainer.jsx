@@ -98,6 +98,8 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
       <Paper
         ref={setNodeRef}
         style={style}
+        {...attributes}
+        {...listeners}
         sx={{
           p: 1.5,
           borderRadius: 2,
@@ -105,7 +107,7 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           transition: "0.2s",
           opacity: task.status === "done" ? 0.65 : 1,
           backgroundColor: task.status === "done" ? "#f4f8f2" : undefined,
-          cursor: isDragging ? "grabbing" : "default",
+          cursor: isDragging ? "grabbing" : "grab",
           "&:hover": {
             backgroundColor: "#e4e6ea",
             transform: "translateY(-2px)",
@@ -116,8 +118,6 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Box
-              {...attributes}
-              {...listeners}
               onClick={(e) => e.stopPropagation()}
               sx={{
                 cursor: "grab",
@@ -342,7 +342,7 @@ const ColumnContainer = ({ column, workspaceId, tasks = [], loadingTasks = false
           <MenuItem
               onClick={() => {
                 if (!selectedTask) return;
-                handleEditStatus(selectedTask); // ✅ thêm dòng này
+                handleEditStatus(selectedTask); 
                 handleMenuClose();
               }}
           >

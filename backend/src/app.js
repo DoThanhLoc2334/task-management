@@ -13,7 +13,7 @@ import workspaceRoutes from './Routers/workspace.routes.js';
 import projectRoutes from './Routers/project.routes.js';
 import columnRoutes from './Routers/column.routes.js';
 
-// 🔥 MIDDLEWARE
+//  MIDDLEWARE
 app.use(express.json());
 app.use(cookieParser());
 // app.use(cors({
@@ -24,7 +24,7 @@ app.use(cookieParser());
 // }));
 app.use(cors())
 
-// 🔥 ROUTES
+//  ROUTES
 app.use(errorHandler);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/tasks', taskRoutes);

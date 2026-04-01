@@ -241,7 +241,7 @@ const WorkspaceService = {
       [workspaceId, currentUserId]
     );
 
-    if (!currentUser.rows.length || currentUser.rows[0].role !== 'OWNER') {
+    if (!currentUser.rows.length || currentUser.rows[0].role !== 'OWNER'  ) {
       throw new AppError(ERROR_CODES.FORBIDDEN, 403, 'Only Owner can remove members');
     }
 

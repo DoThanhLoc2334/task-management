@@ -1,40 +1,40 @@
 import instance from "../api/axios";
 
-// 📌 Lấy tất cả task theo column
+// Lấy tất cả task theo column
 export const getTasksByColumn = (columnId) => {
   return instance.get("/tasks", {
     params: { column_id: columnId }
   });
 };
 
-// 📌 Lấy 1 task theo id
+// Lấy 1 task theo id
 export const getTaskById = (id) => {
   return instance.get(`/tasks/${id}`);
 };
 
-// 📌 Tạo task mới
+// Tạo task mới
 export const createTask = (data) => {
   return instance.post("/tasks", data);
 };
 
-// 📌 Update task (title, description,...)
+// Update task (title, description,...)
 export const updateTask = (id, data) => {
   return instance.put(`/tasks/${id}`, data);
 };
 
-// 📌 Xóa task
+// Xóa task
 export const deleteTask = (taskId, userId) => {
   return instance.delete(`/tasks/${taskId}`, {
     data: { user_id: userId } // Axios cần 'data' khi DELETE gửi body
   });
 };
 
-// 📌 Update position task (drag & drop)
+// Update position task (drag & drop)
 export const updateTaskPosition = (id, position) => {
   return instance.patch(`/tasks/${id}/position`, { position });
 };
 
-// 📌 Move task sang column khác (nếu có)
+// Move task sang column khác (nếu có)
 export const moveTaskToColumn = (taskId, targetColumnId, position) => {
   return instance.patch(`/tasks/${taskId}/move`, {
     column_id: targetColumnId,
@@ -42,7 +42,7 @@ export const moveTaskToColumn = (taskId, targetColumnId, position) => {
   });
 };
 
-// 📌 Reorder task inside column by before/after task IDs
+// Reorder task inside column by before/after task IDs
 export const reorderTask = (taskId, beforeId, afterId) => {
   return instance.put(`/tasks/${taskId}/reorder`, {
     before_id: beforeId,

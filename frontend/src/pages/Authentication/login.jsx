@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -19,6 +19,14 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (accessToken &&  refreshToken) {
+      navigate("/workspaceswitcher", { replace: true });
+    }
+  }, [navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -27,14 +35,14 @@ function Login() {
       const response = res.data;
 
       if (response.success) {
-        // Lưu accessToken vào localStorage
+
         localStorage.setItem("accessToken", response.data.accessToken);
         localStorage.setItem("refreshToken", response.data.refreshToken);
 
-        // Điều hướng
+      
         navigate("/workspaceswitcher");
       } else {
-        // Hiển thị lỗi nếu login thất bại
+
         alert(response.message);
       }
     } catch (error) {

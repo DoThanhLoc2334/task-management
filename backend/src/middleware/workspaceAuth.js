@@ -5,7 +5,7 @@ const workspaceAuth = (requiredRoles = []) => {
     try {
       const userId = req.user?.id;
 
-      // ❌ chưa login
+      //  chưa login
       if (!userId) {
         return res.status(401).json({
           success: false,
@@ -13,7 +13,7 @@ const workspaceAuth = (requiredRoles = []) => {
         });
       }
 
-      // 👉 lấy workspaceId từ nhiều nguồn
+      //  lấy workspaceId từ nhiều nguồn
       const workspaceId =
         req.body?.workspace_id ||
         req.params?.workspace_id ||
@@ -27,7 +27,7 @@ const workspaceAuth = (requiredRoles = []) => {
         });
       }
 
-      // 👉 check membership
+      //   check membership
       const result = await db.query(
         `
         SELECT role 
@@ -46,7 +46,7 @@ const workspaceAuth = (requiredRoles = []) => {
 
       const userRole = result.rows[0].role;
 
-      // 👉 nếu có yêu cầu role
+      //  nếu có yêu cầu role
       if (requiredRoles.length > 0 && !requiredRoles.includes(userRole)) {
         return res.status(403).json({
           success: false,
@@ -54,7 +54,7 @@ const workspaceAuth = (requiredRoles = []) => {
         });
       }
 
-      // 👉 attach thêm info để dùng tiếp
+      //  attach thêm info để dùng tiếp
       req.workspace = {
         id: workspaceId,
         role: userRole

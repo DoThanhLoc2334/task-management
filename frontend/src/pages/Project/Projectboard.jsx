@@ -6,6 +6,8 @@ import AddColumnButton from "../../components/board/AddColumnButton";
 import CreateColumnModal from "../../modals/Creation/CreateColumnModal";
 import EditColumnModal from "../../modals/Editing/EditColumnModal.jsx"; 
 import { getTasksByProjectId, getProjectById, deleteProject } from "../../services/projectsServices.js";
+import { getUsersInWorkspace } from "../../services/authService";
+import { parseToken } from "../../Utils/parseToken";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -23,6 +25,7 @@ const ProjectBoard = () => {
   const navigate = useNavigate();
   const { id: projectId } = useParams();
   const [workspaceId, setWorkspaceId] = useState(null);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
 
   const [columnList, setColumnList] = useState([]);
   const [taskList, setTaskList] = useState([]);
@@ -35,9 +38,6 @@ const ProjectBoard = () => {
 
   const [openEditColumn, setOpenEditColumn] = useState(false);
   const [editColumnData, setEditColumnData] = useState(null);
-
-  const [openEditTask, setOpenEditTask] = useState(false);
-  const [editTaskData, setEditTaskData] = useState(null);
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedColumn, setSelectedColumn] = useState(null);
@@ -52,16 +52,7 @@ const ProjectBoard = () => {
     setSelectedColumn(null);
   };
 
-  const handleEditTask = (task) => {
-    setEditTaskData(task);
-    setOpenEditTask(true);
-  };
 
-  const saveEditTask = async () => {
-    await fetchTasks();
-    setOpenEditTask(false);
-    setEditTaskData(null);
-  };
 
   // ================= FETCH COLUMNS =================
   const fetchColumns = async () => {
@@ -99,6 +90,26 @@ const ProjectBoard = () => {
     }
   };
 
+  const fetchCurrentUserRole = async (workspaceId) => {
+    if (!workspaceId) return;
+    try {
+      const token = localStorage.getItem("accessToken");
+      const userInfo = parseToken(token);
+      if (!userInfo?.id) return;
+
+      const res = await getUsersInWorkspace(workspaceId);
+      const members = res.data?.data || [];
+      const currentMember = members.find(
+        (m) => String(m.id) === String(userInfo.id)
+      );
+      if (currentMember?.role) {
+        setCurrentUserRole(currentMember.role.toLowerCase());
+      }
+    } catch (err) {
+      console.error("Fetch current user role error:", err);
+    }
+  };
+
   // ================= LOAD =================
   useEffect(() => {
     if (projectId) {
@@ -107,6 +118,14 @@ const ProjectBoard = () => {
       fetchTasks();
     }
   }, [projectId]);
+
+  useEffect(() => {
+    if (workspaceId) {
+      fetchCurrentUserRole(workspaceId);
+    }
+  }, [workspaceId]);
+
+  const isOwner = currentUserRole === "owner";
 
   // ================= CREATE COLUMN =================
   const addColumn = async (name) => {
@@ -169,6 +188,11 @@ const ProjectBoard = () => {
  
 
   const handleDeleteProject = async () => {
+    if (!isOwner) {
+      alert("Only workspace owners can delete this project.");
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this project?")) return;
 
     try {
@@ -193,14 +217,16 @@ const ProjectBoard = () => {
         <h2 style={{ marginBottom: 10 }}>
           {columnList.length ? "Project Board" : "No Columns Yet"}
         </h2>
-        <Button
-          variant="contained"
-          color="error"
-          sx={{ mb: 2 }}
-          onClick={handleDeleteProject}
-        >
-          Delete Project
-        </Button>
+        {isOwner && (
+          <Button
+            variant="contained"
+            color="error"
+            sx={{ mb: 2 }}
+            onClick={handleDeleteProject}
+          >
+            Delete Project
+          </Button>
+        )}
 
         <div style={boardContainer}>
           {columnList.map((column) => (
@@ -218,7 +244,7 @@ const ProjectBoard = () => {
                 column={column}
                 tasks={taskMap[column.id] || []}
                 onAddTask={fetchTasks}
-                onEditTask={handleEditTask}
+                // onEditTask={handleEditTask}
                 workspaceId={workspaceId}
               />
               <Menu
@@ -240,7 +266,13 @@ const ProjectBoard = () => {
                     handleDeleteColumn(selectedColumn.id);
                     handleMenuClose();
                   }}
-                  sx={{ color: "red" }}
+                  sx={{
+                          color: "#5b2222",
+                          "&:hover": {
+                            backgroundColor: "#fdecea",
+                            color: "#000147"
+                          }
+                  }}
                 >
                   Delete
                 </MenuItem>
